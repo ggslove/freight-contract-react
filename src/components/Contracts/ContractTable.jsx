@@ -200,13 +200,13 @@ const ContractTable = ({ contracts, onEdit, onDelete }) => {
                 fontSize: '0.875rem', 
                 color: '#16a34a',
                 fontWeight: '500'
-              }}>{formatCurrency(contract.receivableItems?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0)}</td>
+              }}>{formatCurrency(contract.receivables?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0)}</td>
               <td style={{ 
                 padding: '1rem', 
                 fontSize: '0.875rem', 
                 color: '#dc2626',
                 fontWeight: '500'
-              }}>{formatCurrency(contract.payableItems?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0)}</td>
+              }}>{formatCurrency(contract.payables?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0)}</td>
               <td style={{ 
                 padding: '1rem',
                 textAlign: 'center',

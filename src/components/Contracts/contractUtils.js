@@ -39,6 +39,7 @@ export const getInitialFormData = () => ({
   receiptDate: '',
   sailDate: '',
   taxNumber: '',
+  currency: 'CNY', // 添加默认货币字段
   receivableItems: [],
   payableItems: []
 });
@@ -53,6 +54,7 @@ export const createFormDataFromContract = (contract) => ({
   receiptDate: contract.receiptDate || '',
   sailDate: contract.sailDate || '',
   taxNumber: contract.taxNumber || '',
+  currency: contract.currency || 'CNY', // 添加货币字段
   receivableItems: contract.receivableItems || [],
   payableItems: contract.payableItems || []
 });

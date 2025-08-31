@@ -16,10 +16,14 @@ const mapBackendContractToFrontend = (contract) => ({
   invNo: '', // 后端没有发票号字段
   client: contract.customerName,
   quantity: contract.description || '',
-  receiptDate: contract.contractDate ? new Date(contract.contractDate).toLocaleDateString('zh-CN') : '',
-  sailDate: contract.deliveryDate ? new Date(contract.deliveryDate).toLocaleDateString('zh-CN') : '',
+  receiptDate: contract.contractDate ? new Date(contract.contractDate).toISOString().split('T')[0] : '',
+  sailDate: contract.deliveryDate ? new Date(contract.deliveryDate).toISOString().split('T')[0] : '',
   currency: contract.currency,
   status: contract.status,
+  // 保持原始数据结构用于编辑
+  receivables: contract.receivables || [],
+  payables: contract.payables || [],
+  // 同时提供前端格式
   receivableItems: contract.receivables?.map(r => ({
     id: r.id,
     name: r.customerName,
@@ -151,7 +155,43 @@ const ContractsPage = () => {
           status: editingContract.status || 'PENDING'
         });
       } else {
-        await graphqlClient.mutation(CONTRACT_MUTATIONS.CREATE_CONTRACT, contractData);
+        // 创建合同
+        const result = await graphqlClient.mutation(CONTRACT_MUTATIONS.CREATE_CONTRACT, contractData);
+        const newContractId = result.createContract.id;
+        
+        // 创建应收记录
+        if (formData.receivableItems && formData.receivableItems.length > 0) {
+          for (const receivable of formData.receivableItems) {
+            if (!receivable.currency) {
+              receivable.currency = 'CNY'; // 确保货币有默认值
+            }
+            await graphqlClient.mutation(CONTRACT_MUTATIONS.CREATE_RECEIVABLE, {
+              contractId: newContractId,
+              customerName: receivable.name || '未知客户',
+              amount: receivable.amount || 0,
+              currency: receivable.currency,
+              status: 'PENDING',
+              dueDate: formatDateForBackend(formData.sailDate) // 使用开航日期作为默认到期日
+            });
+          }
+        }
+        
+        // 创建应付记录
+        if (formData.payableItems && formData.payableItems.length > 0) {
+          for (const payable of formData.payableItems) {
+            if (!payable.currency) {
+              payable.currency = 'CNY'; // 确保货币有默认值
+            }
+            await graphqlClient.mutation(CONTRACT_MUTATIONS.CREATE_PAYABLE, {
+              contractId: newContractId,
+              supplierName: payable.name || '未知供应商',
+              amount: payable.amount || 0,
+              currency: payable.currency,
+              status: 'PENDING',
+              dueDate: formatDateForBackend(formData.sailDate) // 使用开航日期作为默认到期日
+            });
+          }
+        }
       }
       
       await fetchContracts();
@@ -162,10 +202,37 @@ const ContractsPage = () => {
     }
   };
 
-  const handleEdit = (contract) => {
-    setEditingContract(contract);
-    setFormData(createFormDataFromContract(contract));
-    setShowModal(true);
+  const handleEdit = async (contract) => {
+    try {
+      // 直接使用已加载的应收应付数据
+      const contractWithDetails = {
+        ...contract,
+        receivableItems: contract.receivables?.map(r => ({
+          id: r.id,
+          name: r.customerName,
+          currency: r.currency,
+          amount: r.amount,
+          status: r.status
+        })) || [],
+        payableItems: contract.payables?.map(p => ({
+          id: p.id,
+          name: p.supplierName,
+          currency: p.currency,
+          amount: p.amount,
+          status: p.status
+        })) || []
+      };
+
+      setEditingContract(contractWithDetails);
+      setFormData(createFormDataFromContract(contractWithDetails));
+      setShowModal(true);
+    } catch (error) {
+      console.error('获取合同详情失败:', error);
+      // 如果获取详情失败，仍然打开编辑窗口，但使用基础数据
+      setEditingContract(contract);
+      setFormData(createFormDataFromContract(contract));
+      setShowModal(true);
+    }
   };
 
   const handleDelete = async (id) => {

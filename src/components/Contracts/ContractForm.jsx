@@ -18,8 +18,9 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing }) 
     const newItem = {
       id: Date.now(),
       name: itemName.trim(),
-      currency: itemCurrency,
+      currency: itemCurrency || 'CNY', // 确保货币有默认值
       amount: parseFloat(itemAmount),
+      type: itemType,
       status: '待确认'
     };
 
@@ -407,7 +408,7 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing }) 
             </div>
 
             {/* 明细列表 */}
-            {formData.items && formData.items.length > 0 && (
+            {((formData.receivableItems && formData.receivableItems.length > 0) || (formData.payableItems && formData.payableItems.length > 0)) && (
               <div style={{
                 border: '1px solid #e5e7eb',
                 borderRadius: '0.375rem',
@@ -430,8 +431,8 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing }) 
                   <div style={{ width: '60px' }}></div>
                 </div>
                 
-                {formData.items.map((item, index) => (
-                  <div key={index} style={{
+                {formData.receivableItems && formData.receivableItems.map((item) => (
+                  <div key={item.id} style={{
                     display: 'grid',
                     gridTemplateColumns: '1fr 2fr 1fr 1fr auto',
                     gap: '1rem',
@@ -441,7 +442,7 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing }) 
                     fontSize: '0.875rem'
                   }}>
                     <div style={{ color: '#374151' }}>
-                      {item.type === 'receivable' ? t('contracts.receivables') : t('contracts.payables')}
+                      {t('contracts.receivables')}
                     </div>
                     <div style={{ color: '#374151' }}>{item.name}</div>
                     <div style={{ color: '#374151' }}>{item.currency}</div>
@@ -451,7 +452,45 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing }) 
                     <div style={{ textAlign: 'center' }}>
                       <button
                         type="button"
-                        onClick={() => removeItem(index)}
+                        onClick={() => removeItem('receivable', item.id)}
+                        style={{
+                          padding: '0.25rem',
+                          color: '#ef4444',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '0.875rem'
+                        }}
+                        title={t('contracts.delete')}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                
+                {formData.payableItems && formData.payableItems.map((item) => (
+                  <div key={item.id} style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 2fr 1fr 1fr auto',
+                    gap: '1rem',
+                    padding: '0.75rem 1rem',
+                    borderTop: '1px solid #e5e7eb',
+                    alignItems: 'center',
+                    fontSize: '0.875rem'
+                  }}>
+                    <div style={{ color: '#374151' }}>
+                      {t('contracts.payables')}
+                    </div>
+                    <div style={{ color: '#374151' }}>{item.name}</div>
+                    <div style={{ color: '#374151' }}>{item.currency}</div>
+                    <div style={{ textAlign: 'right', fontWeight: '500' }}>
+                      {formatCurrency(item.amount, item.currency)}
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <button
+                        type="button"
+                        onClick={() => removeItem('payable', item.id)}
                         style={{
                           padding: '0.25rem',
                           color: '#ef4444',

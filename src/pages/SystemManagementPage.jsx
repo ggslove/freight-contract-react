@@ -25,11 +25,7 @@ const SystemManagementPage = () => {
   const ActiveComponent = tabs.find(tab => tab.key === activeTab)?.component;
 
   return (
-    <div style={{ 
-      minHeight: '100vh',
-      backgroundColor: '#f5f5f5',
-      padding: '2rem'
-    }}>
+    <>
       <div style={{ 
         backgroundColor: 'white', 
         borderRadius: '0.5rem',
@@ -91,7 +87,7 @@ const SystemManagementPage = () => {
           {ActiveComponent && <ActiveComponent />}
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

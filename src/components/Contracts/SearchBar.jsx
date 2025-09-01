@@ -6,8 +6,6 @@ const SearchBar = ({ searchTerm, onSearchChange }) => {
   return (
     <div style={{
       padding: '1.5rem 2rem',
-      borderBottom: '1px solid #e5e7eb',
-      backgroundColor: '#fafafa'
     }}>
       <div style={{ position: 'relative', maxWidth: '400px' }}>
         <Search style={{

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { t } from '../utils/i18n';
 
-const CurrencyManagementPage = () => {
+const CurrencyPage = () => {
   const [currencies, setCurrencies] = useState([
     { id: 1, code: 'CNY', name: '人民币', symbol: '￥', isActive: true },
     { id: 2, code: 'USD', name: '美元', symbol: '$', isActive: true },
@@ -85,35 +85,36 @@ const CurrencyManagementPage = () => {
   }, []);
 
   return (
-    <div style={{ padding: '2rem', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>{t('currencies.title')}</h1>
-          <p style={{ color: '#666' }}>{t('currencies.subtitle')}</p>
-        </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            backgroundColor: '#1890ff',
-            color: 'white',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '0.375rem',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontWeight: '500',
-            transition: 'all 0.2s ease',
-            boxShadow: '0 2px 4px rgba(24, 144, 255, 0.2)'
-          }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#096dd9'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = '#1890ff'}
-        >
-          <span style={{ fontSize: '16px', lineHeight: '1' }}>+</span>
-            {t('currencies.addCurrency')}
-        </button>
+    <>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+          <div>
+            <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>{t('currencies.title')}</h1>
+            <p style={{ color: '#666' }}>{t('currencies.subtitle')}</p>
+          </div>
+    
+          <button
+            onClick={() => setShowAddModal(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              backgroundColor: '#1890ff',
+              color: 'white',
+              padding: '0.75rem 1.5rem',
+              borderRadius: '0.375rem',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 4px rgba(24, 144, 255, 0.2)'
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#096dd9'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#1890ff'}
+          >
+            <span style={{ fontSize: '16px', lineHeight: '1' }}>+</span>
+              {t('currencies.addCurrency')}
+          </button>
       </div>
 
       {/* 统计卡片 */}
@@ -410,8 +411,8 @@ const CurrencyManagementPage = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
-export default CurrencyManagementPage;
+export default CurrencyPage;

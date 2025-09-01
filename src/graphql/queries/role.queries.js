@@ -1,75 +1,42 @@
 // 角色相关的GraphQL查询
+// 注意：后端目前没有独立的角色查询，角色是用户的一个字段
 
 export const ROLE_QUERIES = {
-  // 获取所有角色
-  GET_ALL_ROLES: `
-    query GetAllRoles {
-      roles {
+  // 获取所有用户 - 通过用户列表推断角色
+  GET_ALL_USERS: `
+    query GetAllUsers {
+      users {
         id
-        name
-        description
-        permissions
+        username
+        email
+        realName
+        role
+        status
         createdAt
-        updatedAt
-        userCount
       }
     }
   `,
 
-  // 根据ID获取角色
-  GET_ROLE_BY_ID: `
-    query GetRoleById($id: ID!) {
-      role(id: $id) {
+  // 获取特定角色的用户
+  GET_USERS_BY_ROLE: `
+    query GetUsersByRole($role: String!) {
+      users {
         id
-        name
-        description
-        permissions
+        username
+        email
+        realName
+        role
+        status
         createdAt
-        updatedAt
-        users {
-          id
-          username
-          email
-          fullName
-        }
       }
     }
   `,
 
-  // 搜索角色
-  SEARCH_ROLES: `
-    query SearchRoles($keyword: String!) {
-      searchRoles(keyword: $keyword) {
-        id
-        name
-        description
-        permissions
-        createdAt
-        userCount
-      }
-    }
-  `,
-
-  // 获取所有权限
-  GET_ALL_PERMISSIONS: `
-    query GetAllPermissions {
-      permissions {
-        key
-        name
-        description
-        module
-      }
-    }
-  `,
-
-  // 获取角色权限
-  GET_ROLE_PERMISSIONS: `
-    query GetRolePermissions($roleId: ID!) {
-      rolePermissions(roleId: $roleId) {
-        key
-        name
-        description
-        module
+  // 获取角色统计信息 - 通过用户聚合
+  GET_ROLE_STATISTICS: `
+    query GetRoleStatistics {
+      users {
+        role
       }
     }
   `

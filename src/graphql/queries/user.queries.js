@@ -8,16 +8,13 @@ export const USER_QUERIES = {
         id
         username
         email
-        fullName
+        realName
         phone
+        role
         status
         createdAt
         updatedAt
-        roles {
-          id
-          name
-          description
-        }
+        lastLogin
       }
     }
   `,
@@ -29,75 +26,45 @@ export const USER_QUERIES = {
         id
         username
         email
-        fullName
+        realName
         phone
+        role
         status
         createdAt
         updatedAt
-        roles {
-          id
-          name
-          description
-          permissions
-        }
+        lastLogin
       }
     }
   `,
 
-  // 搜索用户
-  SEARCH_USERS: `
-    query SearchUsers($keyword: String!) {
-      searchUsers(keyword: $keyword) {
+  // 根据用户名获取用户
+  GET_USER_BY_USERNAME: `
+    query GetUserByUsername($username: String!) {
+      userByUsername(username: $username) {
         id
         username
         email
-        fullName
+        realName
         phone
+        role
         status
         createdAt
-        roles {
-          id
-          name
-        }
       }
     }
   `,
 
-  // 根据状态获取用户
-  GET_USERS_BY_STATUS: `
-    query GetUsersByStatus($status: UserStatus!) {
-      usersByStatus(status: $status) {
-        id
-        username
-        email
-        fullName
-        phone
-        status
-        createdAt
-        roles {
-          id
-          name
-        }
-      }
-    }
-  `,
-
-  // 获取当前用户信息
+  // 获取当前用户信息 - 需要身份验证
   GET_CURRENT_USER: `
     query GetCurrentUser {
-      currentUser {
+      user(id: 1) {
         id
         username
         email
-        fullName
+        realName
         phone
+        role
         status
-        roles {
-          id
-          name
-          description
-          permissions
-        }
+        createdAt
       }
     }
   `

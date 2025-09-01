@@ -53,6 +53,7 @@ const ContractTable = ({ contracts, onEdit, onDelete }) => {
               left: 0,
               backgroundColor: '#f8fafc',
               zIndex: 10,
+              minWidth:"120px",
               borderRight: '1px solid #e2e8f0'
             }}>{t('contracts.contractNumber')}</th>
             <th style={{

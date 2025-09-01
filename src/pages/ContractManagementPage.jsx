@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, DollarSign, FileCheck } from 'lucide-react';
 import { t } from '../utils/i18n';
 import ContractsPage from './ContractsPage';
-import CurrencyManagementPage from './CurrencyManagementPage';
+import CurrencyPage from './CurrencyPage';
 
 const ContractManagementPage = () => {
   const [activeTab, setActiveTab] = useState('contracts');
@@ -31,18 +31,14 @@ const ContractManagementPage = () => {
       key: 'currencies',
       label: t('contractManagement.currencies'),
       icon: DollarSign,
-      component: CurrencyManagementPage
+      component: CurrencyPage
     }
   ];
 
   const ActiveComponent = tabs.find(tab => tab.key === activeTab)?.component;
 
   return (
-    <div style={{ 
-      minHeight: '100vh',
-      backgroundColor: '#f5f5f5',
-      padding: '2rem'
-    }}>
+    <>
       <div style={{ 
         backgroundColor: 'white', 
         borderRadius: '0.5rem',
@@ -100,11 +96,11 @@ const ContractManagementPage = () => {
         </div>
 
         {/* 内容区域 */}
-        <div style={{ padding: '0' }}>
+         <div style={{ padding: '2rem' }}>
           {ActiveComponent && <ActiveComponent />}
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

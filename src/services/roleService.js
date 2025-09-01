@@ -1,145 +1,231 @@
+import { gql } from '@apollo/client';
 import client from '../apollo-client';
-import { gql } from '@apollo/client/core';
-import { ROLE_QUERIES } from '../graphql/queries/role.queries.js';
-import { ROLE_MUTATIONS } from '../graphql/mutations/role.mutations.js';
+import userService from './userService';
 
-// 从现有查询和变更中提取
-const {
-  GET_ALL_ROLES,
-  GET_ROLE_BY_ID,
-  SEARCH_ROLES,
-  GET_ALL_PERMISSIONS,
-  GET_ROLE_PERMISSIONS
-} = ROLE_QUERIES;
-
-const {
-  CREATE_ROLE,
-  UPDATE_ROLE,
-  DELETE_ROLE,
-  ASSIGN_ROLE_TO_USER,
-  REMOVE_ROLE_FROM_USER
-} = ROLE_MUTATIONS;
-
-// 角色枚举映射
+// 角色枚举
 export const RoleEnum = {
-  SUPER_ADMIN: 'SUPER_ADMIN',
-  SYSTEM_ADMIN: 'SYSTEM_ADMIN',
-  BUSINESS_MANAGER: 'BUSINESS_MANAGER',
-  FINANCE_STAFF: 'FINANCE_STAFF',
-  NORMAL_USER: 'NORMAL_USER'
+  ADMIN: 'ADMIN',
+  MANAGER: 'MANAGER',
+  OPERATOR: 'OPERATOR',
+  VIEWER: 'VIEWER'
 };
 
 // 角色显示名称映射
 export const RoleDisplayNames = {
-  SUPER_ADMIN: '超级管理员',
-  SYSTEM_ADMIN: '系统管理员',
-  BUSINESS_MANAGER: '业务经理',
-  FINANCE_STAFF: '财务人员',
-  NORMAL_USER: '普通用户'
+  [RoleEnum.ADMIN]: '管理员',
+  [RoleEnum.MANAGER]: '经理',
+  [RoleEnum.OPERATOR]: '操作员',
+  [RoleEnum.VIEWER]: '查看者'
 };
 
-// 权限模块分类
-export const PermissionModules = {
-  SYSTEM: '系统管理',
-  USER: '用户管理',
-  ROLE: '角色管理',
-  CONTRACT: '合同管理',
-  FINANCE: '财务管理',
-  REPORT: '报表管理'
+// 角色描述
+export const RoleDescriptions = {
+  [RoleEnum.ADMIN]: '拥有系统所有权限的管理员',
+  [RoleEnum.MANAGER]: '负责业务管理的经理',
+  [RoleEnum.OPERATOR]: '日常操作的操作员',
+  [RoleEnum.VIEWER]: '只能查看数据的查看者'
 };
 
+// 角色权限映射
+export const RolePermissions = {
+  [RoleEnum.ADMIN]: ['*'], // 所有权限
+  [RoleEnum.MANAGER]: [
+    'user:read', 'user:write',
+    'contract:read', 'contract:write',
+    'report:read', 'report:write'
+  ],
+  [RoleEnum.OPERATOR]: [
+    'user:read',
+    'contract:read', 'contract:write',
+    'report:read'
+  ],
+  [RoleEnum.VIEWER]: [
+    'user:read',
+    'contract:read',
+    'report:read'
+  ]
+};
+
+// 角色服务
 const roleService = {
-  // 获取所有角色
+  // 获取所有角色（基于用户数据推断）
   async getAllRoles() {
-    const { data } = await client.query({
-      query: gql(GET_ALL_ROLES),
-      fetchPolicy: 'network-only'
-    });
-    return data.roles;
+    try {
+      const users = await userService.getAllUsers();
+      
+      // 从用户数据中统计角色使用情况
+      const roleStats = {};
+      users.forEach(user => {
+        if (user.role) {
+          roleStats[user.role] = (roleStats[user.role] || 0) + 1;
+        }
+      });
+
+      // 构建角色列表
+      const roles = Object.values(RoleEnum).map(role => ({
+        id: role,
+        name: role,
+        displayName: RoleDisplayNames[role] || role,
+        description: RoleDescriptions[role] || '',
+        permissions: RolePermissions[role] || [],
+        userCount: roleStats[role] || 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }));
+
+      return roles;
+    } catch (error) {
+      console.error('获取角色列表失败:', error);
+      return [];
+    }
   },
 
-  // 根据ID获取角色
+  // 获取角色详情
   async getRoleById(id) {
-    const { data } = await client.query({
-      query: gql(GET_ROLE_BY_ID),
-      variables: { id },
-      fetchPolicy: 'network-only'
-    });
-    return data.role;
+    try {
+      const roles = await this.getAllRoles();
+      return roles.find(role => role.id === id) || null;
+    } catch (error) {
+      console.error('获取角色详情失败:', error);
+      return null;
+    }
   },
 
-  // 创建角色
+  // 获取角色下的用户
+  async getUsersByRole(role) {
+    try {
+      const users = await userService.getAllUsers();
+      return users.filter(user => user.role === role);
+    } catch (error) {
+      console.error('获取角色用户失败:', error);
+      return [];
+    }
+  },
+
+  // 获取角色统计信息
+  async getRoleStatistics() {
+    try {
+      const users = await userService.getAllUsers();
+      
+      const roleStats = {};
+      users.forEach(user => {
+        if (user.role) {
+          roleStats[user.role] = (roleStats[user.role] || 0) + 1;
+        }
+      });
+
+      const totalUsers = users.length;
+      const totalRoles = Object.keys(roleStats).length;
+
+      return {
+        totalUsers,
+        totalRoles,
+        roleStats,
+        roles: Object.entries(roleStats).map(([role, count]) => ({
+          role,
+          displayName: RoleDisplayNames[role] || role,
+          count,
+          percentage: totalUsers > 0 ? Math.round((count / totalUsers) * 100) : 0
+        }))
+      };
+    } catch (error) {
+      console.error('获取角色统计信息失败:', error);
+      return {
+        totalUsers: 0,
+        totalRoles: 0,
+        roleStats: {},
+        roles: []
+      };
+    }
+  },
+
+  // 创建角色（模拟）
   async createRole(roleData) {
-    const { data } = await client.mutate({
-      mutation: gql(CREATE_ROLE),
-      variables: roleData
-    });
-    return data.createRole;
+    try {
+      // 由于后端没有独立的角色管理，这里模拟创建角色
+      const newRole = {
+        id: roleData.name,
+        name: roleData.name,
+        displayName: roleData.displayName || RoleDisplayNames[roleData.name] || roleData.name,
+        description: roleData.description || '',
+        permissions: roleData.permissions || [],
+        userCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      return newRole;
+    } catch (error) {
+      console.error('创建角色失败:', error);
+      return null;
+    }
   },
 
-  // 更新角色
+  // 更新角色（模拟）
   async updateRole(id, roleData) {
-    const { data } = await client.mutate({
-      mutation: gql(UPDATE_ROLE),
-      variables: { id, ...roleData }
-    });
-    return data.updateRole;
+    try {
+      const role = await this.getRoleById(id);
+      if (!role) return null;
+
+      return {
+        ...role,
+        ...roleData,
+        updatedAt: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('更新角色失败:', error);
+      return null;
+    }
   },
 
-  // 删除角色
+  // 删除角色（模拟）
   async deleteRole(id) {
-    const { data } = await client.mutate({
-      mutation: gql(DELETE_ROLE),
-      variables: { id }
-    });
-    return data.deleteRole;
+    try {
+      // 检查是否有用户在使用该角色
+      const users = await this.getUsersByRole(id);
+      if (users.length > 0) {
+        throw new Error('该角色正在被用户使用，无法删除');
+      }
+      return true;
+    } catch (error) {
+      console.error('删除角色失败:', error);
+      return false;
+    }
   },
 
   // 搜索角色
   async searchRoles(keyword) {
-    const { data } = await client.query({
-      query: gql(SEARCH_ROLES),
-      variables: { keyword },
-      fetchPolicy: 'network-only'
-    });
-    return data.searchRoles;
+    try {
+      const roles = await this.getAllRoles();
+      if (!keyword) return roles;
+
+      const searchTerm = keyword.toLowerCase();
+      return roles.filter(role =>
+        role.name.toLowerCase().includes(searchTerm) ||
+        role.displayName.toLowerCase().includes(searchTerm) ||
+        role.description.toLowerCase().includes(searchTerm)
+      );
+    } catch (error) {
+      console.error('搜索角色失败:', error);
+      return [];
+    }
   },
 
-  // 获取所有权限
+  // 获取权限列表
   async getAllPermissions() {
-    const { data } = await client.query({
-      query: gql(GET_ALL_PERMISSIONS),
-      fetchPolicy: 'network-only'
-    });
-    return data.permissions;
-  },
-
-  // 获取角色权限
-  async getRolePermissions(roleId) {
-    const { data } = await client.query({
-      query: gql(GET_ROLE_PERMISSIONS),
-      variables: { roleId },
-      fetchPolicy: 'network-only'
-    });
-    return data.rolePermissions;
-  },
-
-  // 分配角色给用户
-  async assignRoleToUser(userId, roleId) {
-    const { data } = await client.mutate({
-      mutation: gql(ASSIGN_ROLE_TO_USER),
-      variables: { userId, roleId }
-    });
-    return data.assignRoleToUser;
-  },
-
-  // 从用户移除角色
-  async removeRoleFromUser(userId, roleId) {
-    const { data } = await client.mutate({
-      mutation: gql(REMOVE_ROLE_FROM_USER),
-      variables: { userId, roleId }
-    });
-    return data.removeRoleFromUser;
+    try {
+      return [
+        { key: 'user:read', name: '查看用户', description: '查看用户列表和详情' },
+        { key: 'user:write', name: '管理用户', description: '创建、更新、删除用户' },
+        { key: 'contract:read', name: '查看合同', description: '查看合同列表和详情' },
+        { key: 'contract:write', name: '管理合同', description: '创建、更新、删除合同' },
+        { key: 'report:read', name: '查看报表', description: '查看各种报表数据' },
+        { key: 'report:write', name: '管理报表', description: '创建、更新、删除报表' }
+      ];
+    } catch (error) {
+      console.error('获取权限列表失败:', error);
+      return [];
+    }
   }
 };
 

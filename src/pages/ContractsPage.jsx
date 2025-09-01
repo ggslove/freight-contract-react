@@ -310,26 +310,21 @@ const ContractsPage = () => {
   }
 
   return (
-    <div style={{ 
-      minHeight: '100vh',
-      backgroundColor: '#f5f5f5',
-      padding: '2rem'
-    }}>
-      <div style={{ 
-        backgroundColor: 'white', 
-        borderRadius: '0.5rem',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-      }}>
+    <>
+     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <div>
+          <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}></h1>
+          <p style={{ color: '#666' }}></p>
+        </div>
+      </div>
+
         <ContractHeader onAddClick={handleAddNew} />
         <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
-        
-        <div style={{ padding: '0' }}>
-          <ContractTable 
-            contracts={filteredContracts} 
-            onEdit={handleEdit} 
-            onDelete={handleDelete} 
-          />
-        </div>
+        <ContractTable 
+          contracts={filteredContracts} 
+          onEdit={handleEdit} 
+          onDelete={handleDelete} 
+        />
 
         <div style={{
           marginTop: '1rem',
@@ -345,7 +340,6 @@ const ContractsPage = () => {
             显示 {filteredContracts.length} 条，共 {contracts.length} 条
           </div>
         </div>
-      </div>
 
       {showModal && (
         <ContractForm
@@ -356,7 +350,7 @@ const ContractsPage = () => {
           isEditing={!!editingContract}
         />
       )}
-    </div>
+    </>
   );
 };
 

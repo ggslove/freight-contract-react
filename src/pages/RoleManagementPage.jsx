@@ -147,7 +147,7 @@ const RoleManagementPage = () => {
   }
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
           <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>{t('system.roleManagement')}</h1>
@@ -541,7 +541,7 @@ const RoleManagementPage = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

@@ -6,8 +6,6 @@ import DashboardPage from './pages/DashboardPage';
 import ContractManagementPage from './pages/ContractManagementPage';
 import AboutPage from './pages/AboutPage';
 import SystemManagementPage from './pages/SystemManagementPage';
-import ContractsPage from './pages/ContractsPage';
-import CurrencyManagementPage from './pages/CurrencyManagementPage';
 import LoginPage from './pages/LoginPage';
 import authService from './services/authService';
 import './App.css';
@@ -74,13 +72,7 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } />
-          <Route path="/currency-management" element={
-            <ProtectedRoute>
-              <Layout>
-                <CurrencyManagementPage />
-              </Layout>
-            </ProtectedRoute>
-          } />
+          
         </Routes>
       </LanguageWrapper>
     </Router>

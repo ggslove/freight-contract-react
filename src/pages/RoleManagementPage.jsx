@@ -1,56 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Shield, Plus, Edit, Trash2, CheckSquare, Square } from 'lucide-react';
 import { t } from '../utils/i18n';
+import roleService from '../services/roleService';
 
 const RoleManagementPage = () => {
-  const [roles, setRoles] = useState([
-    {
-      id: 1,
-      name: '超级管理员',
-      description: '系统超级管理员，拥有所有权限',
-      permissions: [
-        '系统管理', '用户管理', '角色管理', '合同管理', '财务管理', 
-        '币种管理', '报表查看', '数据导出', '系统配置'
-      ],
-      userCount: 1,
-      createTime: '2024-01-15 10:00:00',
-      isSystem: true
-    },
-    {
-      id: 2,
-      name: '系统管理员',
-      description: '系统管理员，负责系统日常维护',
-      permissions: [
-        '用户管理', '角色管理', '合同管理', '财务管理', 
-        '币种管理', '报表查看', '数据导出'
-      ],
-      userCount: 2,
-      createTime: '2024-01-16 09:30:00',
-      isSystem: false
-    },
-    {
-      id: 3,
-      name: '业务经理',
-      description: '业务经理，负责合同管理和客户关系',
-      permissions: [
-        '合同管理', '客户管理', '报表查看', '数据导出'
-      ],
-      userCount: 5,
-      createTime: '2024-01-17 14:20:00',
-      isSystem: false
-    },
-    {
-      id: 4,
-      name: '财务人员',
-      description: '财务人员，负责收付款管理',
-      permissions: [
-        '财务管理', '合同查看', '报表查看', '数据导出'
-      ],
-      userCount: 3,
-      createTime: '2024-01-18 11:15:00',
-      isSystem: false
-    }
-  ]);
+  const [roles, setRoles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -68,30 +24,68 @@ const RoleManagementPage = () => {
     '收款管理', '发票管理', '统计分析', '日志查看'
   ];
 
-  const handleAddRole = () => {
-    const newRole = {
-      id: roles.length + 1,
-      ...formData,
-      userCount: 0,
-      createTime: new Date().toLocaleString('zh-CN'),
-      isSystem: false
-    };
-    
-    setRoles([...roles, newRole]);
-    setShowAddModal(false);
-    setFormData({ name: '', description: '', permissions: [] });
+  const fetchRoles = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await roleService.getAllRoles();
+      setRoles(data);
+    } catch (error) {
+      console.error('获取角色列表失败:', error);
+      setError('获取角色列表失败: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleEditRole = () => {
-    setRoles(roles.map(role => 
-      role.id === selectedRole.id ? { ...role, ...formData } : role
-    ));
-    setShowEditModal(false);
-    setSelectedRole(null);
-    setFormData({ name: '', description: '', permissions: [] });
+  useEffect(() => {
+    fetchRoles();
+  }, []);
+
+  const handleAddRole = async () => {
+    if (!formData.name.trim()) {
+      alert('请输入角色名称');
+      return;
+    }
+
+    try {
+      const newRole = await roleService.createRole({
+        name: formData.name,
+        description: formData.description,
+        permissions: formData.permissions
+      });
+      
+      setRoles([...roles, newRole]);
+      setShowAddModal(false);
+      setFormData({ name: '', description: '', permissions: [] });
+    } catch (error) {
+      alert('创建角色失败: ' + error.message);
+    }
   };
 
-  const handleDeleteRole = (id) => {
+  const handleEditRole = async () => {
+    if (!formData.name.trim()) {
+      alert('请输入角色名称');
+      return;
+    }
+
+    try {
+      const updatedRole = await roleService.updateRole(selectedRole.id, {
+        name: formData.name,
+        description: formData.description,
+        permissions: formData.permissions
+      });
+      
+      setRoles(roles.map(role => role.id === selectedRole.id ? updatedRole : role));
+      setShowEditModal(false);
+      setSelectedRole(null);
+      setFormData({ name: '', description: '', permissions: [] });
+    } catch (error) {
+      alert('更新角色失败: ' + error.message);
+    }
+  };
+
+  const handleDeleteRole = async (id) => {
     const role = roles.find(r => r.id === id);
     if (role.isSystem) {
       alert('系统预置角色不能删除');
@@ -101,34 +95,63 @@ const RoleManagementPage = () => {
       alert('该角色下还有用户，不能删除');
       return;
     }
+
     if (window.confirm('确定要删除该角色吗？')) {
-      setRoles(roles.filter(role => role.id !== id));
+      try {
+        await roleService.deleteRole(id);
+        setRoles(roles.filter(role => role.id !== id));
+      } catch (error) {
+        alert('删除角色失败: ' + error.message);
+      }
     }
   };
 
   const togglePermission = (permission) => {
-    const newPermissions = formData.permissions.includes(permission)
-      ? formData.permissions.filter(p => p !== permission)
-      : [...formData.permissions, permission];
-    setFormData({ ...formData, permissions: newPermissions });
+    if (formData.permissions.includes(permission)) {
+      setFormData({
+        ...formData,
+        permissions: formData.permissions.filter(p => p !== permission)
+      });
+    } else {
+      setFormData({
+        ...formData,
+        permissions: [...formData.permissions, permission]
+      });
+    }
   };
 
   const openEditModal = (role) => {
     setSelectedRole(role);
     setFormData({
       name: role.name,
-      description: role.description,
-      permissions: role.permissions
+      description: role.description || '',
+      permissions: role.permissions || []
     });
     setShowEditModal(true);
   };
 
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+        <div>加载中...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: '2rem', color: '#ff4d4f', textAlign: 'center' }}>
+        {error}
+      </div>
+    );
+  }
+
   return (
-    <div style={{ padding: '2rem', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+    <div style={{ padding: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
           <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>{t('system.roleManagement')}</h1>
-          <p style={{ color: '#666' }}>{t('system.description')}</p>
+          <p style={{ color: '#666' }}>{t('system.roleManagementDesc')}</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
@@ -136,19 +159,15 @@ const RoleManagementPage = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
+            padding: '0.75rem 1.5rem',
             backgroundColor: '#1890ff',
             color: 'white',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '0.375rem',
             border: 'none',
+            borderRadius: '0.5rem',
             cursor: 'pointer',
             fontSize: '0.875rem',
-            fontWeight: '500',
-            transition: 'all 0.2s ease',
-            boxShadow: '0 2px 4px rgba(24, 144, 255, 0.2)'
+            fontWeight: '500'
           }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#096dd9'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = '#1890ff'}
         >
           <Plus size={16} />
           {t('system.addRole')}
@@ -156,50 +175,50 @@ const RoleManagementPage = () => {
       </div>
 
       {/* 统计卡片 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-        <div style={{
-          backgroundColor: 'white',
-          padding: '1.5rem',
-          borderRadius: '0.5rem',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <p style={{ color: '#666', marginBottom: '0.5rem' }}>{t('system.roleManagement')}</p>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{roles.length}</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+        <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+            <div style={{ padding: '0.5rem', backgroundColor: '#e6f7ff', borderRadius: '0.5rem' }}>
+              <Shield size={20} style={{ color: '#1890ff' }} />
             </div>
-            <Shield size={32} style={{ color: '#1890ff' }} />
+            <div>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600', margin: 0 }}>{t('system.totalRoles')}</h3>
+              <p style={{ color: '#666', fontSize: '0.875rem', margin: 0 }}>{t('system.totalRolesDesc')}</p>
+            </div>
           </div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1890ff' }}>
+            {roles.length}
+          </h2>
         </div>
-        <div style={{
-          backgroundColor: 'white',
-          padding: '1.5rem',
-          borderRadius: '0.5rem',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        
+        <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+            <div style={{ padding: '0.5rem', backgroundColor: '#fff7e6', borderRadius: '0.5rem' }}>
+              <Shield size={20} style={{ color: '#faad14' }} />
+            </div>
             <div>
-              <p style={{ color: '#666', marginBottom: '0.5rem' }}>{t('system.systemRoles')}</p>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#faad14' }}>
-                {roles.filter(r => r.isSystem).length}
-              </h2>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600', margin: 0 }}>{t('system.systemRoles')}</h3>
+              <p style={{ color: '#666', fontSize: '0.875rem', margin: 0 }}>{t('system.systemRolesDesc')}</p>
             </div>
           </div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#faad14' }}>
+            {roles.filter(role => role.isSystem).length}
+          </h2>
         </div>
-        <div style={{
-          backgroundColor: 'white',
-          padding: '1.5rem',
-          borderRadius: '0.5rem',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        
+        <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+            <div style={{ padding: '0.5rem', backgroundColor: '#f6ffed', borderRadius: '0.5rem' }}>
+              <Shield size={20} style={{ color: '#52c41a' }} />
+            </div>
             <div>
-              <p style={{ color: '#666', marginBottom: '0.5rem' }}>{t('system.customRoles')}</p>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#52c41a' }}>
-                {roles.filter(r => !r.isSystem).length}
-              </h2>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600', margin: 0 }}>{t('system.customRoles')}</h3>
+              <p style={{ color: '#666', fontSize: '0.875rem', margin: 0 }}>{t('system.customRolesDesc')}</p>
             </div>
           </div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#52c41a' }}>
+            {roles.filter(role => !role.isSystem).length}
+          </h2>
         </div>
       </div>
 
@@ -260,7 +279,7 @@ const RoleManagementPage = () => {
                     {role.isSystem ? t('system.systemRoles') : t('system.customRoles')}
                   </span>
                 </td>
-                <td style={{ padding: '1rem', fontSize: '0.875rem', color: '#666' }}>{role.createTime}</td>
+                <td style={{ padding: '1rem', fontSize: '0.875rem', color: '#666' }}>{new Date(role.createTime).toLocaleString('zh-CN')}</td>
                 <td style={{ padding: '1rem' }}>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button
@@ -294,7 +313,7 @@ const RoleManagementPage = () => {
                         fontSize: '0.875rem',
                         transition: 'all 0.2s ease'
                       }}
-                      onMouseEnter={(e) => !(role.isSystem || role.userCount > 0) && (e.target.style.backgroundColor = '#cf1322')}
+                      onMouseEnter={(e) => !(role.isSystem || role.userCount > 0) && (e.target.style.backgroundColor = '#ff7875')}
                       onMouseLeave={(e) => !(role.isSystem || role.userCount > 0) && (e.target.style.backgroundColor = '#ff4d4f')}
                     >
                       <Trash2 size={14} />
@@ -325,12 +344,12 @@ const RoleManagementPage = () => {
             backgroundColor: 'white',
             padding: '2rem',
             borderRadius: '0.5rem',
-            width: '500px',
-            maxWidth: '90%',
+            width: '100%',
+            maxWidth: '500px',
             maxHeight: '80vh',
             overflowY: 'auto'
           }}>
-            <h2 style={{ marginBottom: '1.5rem' }}>{t('system.addRole')}</h2>
+            <h2 style={{ marginTop: 0 }}>{t('system.addRole')}</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
                 <label>{t('system.roleName')}</label>
@@ -358,56 +377,39 @@ const RoleManagementPage = () => {
                     border: '1px solid #d9d9d9',
                     borderRadius: '0.25rem',
                     marginTop: '0.25rem',
-                    minHeight: '80px'
+                    minHeight: '80px',
+                    resize: 'vertical'
                   }}
                 />
               </div>
               <div>
                 <label>{t('system.permissions')}</label>
-                <div style={{ marginTop: '0.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
                   {allPermissions.map(permission => (
-                    <div key={permission} style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-                      <button
-                        onClick={() => togglePermission(permission)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '0.25rem',
-                          fontSize: '0.875rem'
-                        }}
-                      >
-                        {formData.permissions.includes(permission) ? 
-                          <CheckSquare size={16} style={{ color: '#1890ff' }} /> : 
-                          <Square size={16} style={{ color: '#d9d9d9' }} />
-                        }
-                        {permission}
-                      </button>
-                    </div>
+                    <label key={permission} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={formData.permissions.includes(permission)}
+                        onChange={() => togglePermission(permission)}
+                      />
+                      <span>{permission}</span>
+                    </label>
                   ))}
                 </div>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
               <button
-                onClick={() => {
-                  setShowAddModal(false);
-                  setFormData({ name: '', description: '', permissions: [] });
-                }}
+                onClick={() => setShowAddModal(false)}
                 style={{
                   padding: '0.5rem 1rem',
-                  border: '1px solid #d9d9d9',
                   backgroundColor: 'white',
+                  color: '#666',
+                  border: '1px solid #d9d9d9',
                   borderRadius: '0.375rem',
                   cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  transition: 'all 0.2s ease'
+                  fontSize: '0.875rem'
                 }}
-                onMouseEnter={(e) => e.target.style.borderColor = '#1890ff'}
-                onMouseLeave={(e) => e.target.style.borderColor = '#d9d9d9'}
               >
                 {t('common.cancel')}
               </button>
@@ -415,17 +417,13 @@ const RoleManagementPage = () => {
                 onClick={handleAddRole}
                 style={{
                   padding: '0.5rem 1rem',
-                  backgroundColor: '#52c41a',
+                  backgroundColor: '#1890ff',
                   color: 'white',
                   border: 'none',
                   borderRadius: '0.375rem',
                   cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  transition: 'all 0.2s ease'
+                  fontSize: '0.875rem'
                 }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#389e0d'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#52c41a'}
               >
                 {t('system.confirmAdd')}
               </button>
@@ -452,12 +450,12 @@ const RoleManagementPage = () => {
             backgroundColor: 'white',
             padding: '2rem',
             borderRadius: '0.5rem',
-            width: '500px',
-            maxWidth: '90%',
+            width: '100%',
+            maxWidth: '500px',
             maxHeight: '80vh',
             overflowY: 'auto'
           }}>
-            <h2 style={{ marginBottom: '1.5rem' }}>{t('system.editRole')}</h2>
+            <h2 style={{ marginTop: 0 }}>{t('system.editRole')}</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
                 <label>{t('system.roleName')}</label>
@@ -485,40 +483,28 @@ const RoleManagementPage = () => {
                     border: '1px solid #d9d9d9',
                     borderRadius: '0.25rem',
                     marginTop: '0.25rem',
-                    minHeight: '80px'
+                    minHeight: '80px',
+                    resize: 'vertical'
                   }}
                 />
               </div>
               <div>
                 <label>{t('system.permissions')}</label>
-                <div style={{ marginTop: '0.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
                   {allPermissions.map(permission => (
-                    <div key={permission} style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-                      <button
-                        onClick={() => togglePermission(permission)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '0.25rem',
-                          fontSize: '0.875rem'
-                        }}
-                      >
-                        {formData.permissions.includes(permission) ? 
-                          <CheckSquare size={16} style={{ color: '#1890ff' }} /> : 
-                          <Square size={16} style={{ color: '#d9d9d9' }} />
-                        }
-                        {permission}
-                      </button>
-                    </div>
+                    <label key={permission} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={formData.permissions.includes(permission)}
+                        onChange={() => togglePermission(permission)}
+                      />
+                      <span>{permission}</span>
+                    </label>
                   ))}
                 </div>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
               <button
                 onClick={() => {
                   setShowEditModal(false);
@@ -527,15 +513,13 @@ const RoleManagementPage = () => {
                 }}
                 style={{
                   padding: '0.5rem 1rem',
-                  border: '1px solid #d9d9d9',
                   backgroundColor: 'white',
+                  color: '#666',
+                  border: '1px solid #d9d9d9',
                   borderRadius: '0.375rem',
                   cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  transition: 'all 0.2s ease'
+                  fontSize: '0.875rem'
                 }}
-                onMouseEnter={(e) => e.target.style.borderColor = '#1890ff'}
-                onMouseLeave={(e) => e.target.style.borderColor = '#d9d9d9'}
               >
                 {t('common.cancel')}
               </button>
@@ -548,12 +532,8 @@ const RoleManagementPage = () => {
                   border: 'none',
                   borderRadius: '0.375rem',
                   cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  transition: 'all 0.2s ease'
+                  fontSize: '0.875rem'
                 }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#096dd9'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#1890ff'}
               >
                 {t('system.confirmEdit')}
               </button>

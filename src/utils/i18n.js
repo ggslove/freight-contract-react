@@ -52,8 +52,10 @@ const translations = {
     nav: {
       dashboard: '仪表盘',
       contracts: '合同管理',
+      users: '用户管理',
       system: '系统管理',
-      about: '关于'
+      about: '关于',
+      logout: '登出'
     },
     
     // 仪表盘
@@ -344,8 +346,10 @@ const translations = {
     nav: {
       dashboard: 'Dashboard',
       contracts: 'Contracts',
+      users: 'Users',
       system: 'System Management',
-      about: 'About'
+      about: 'About',
+      logout: 'Logout'
     },
     
     // Dashboard

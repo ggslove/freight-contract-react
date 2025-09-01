@@ -5,7 +5,7 @@ import ContractTable from '../components/Contracts/ContractTable';
 import ContractForm from '../components/Contracts/ContractForm';
 import { filterContracts, getInitialFormData, createFormDataFromContract } from '../components/Contracts/contractUtils';
 import { t } from '../utils/i18n';
-import { graphqlClient, CONTRACT_QUERIES, CONTRACT_MUTATIONS } from '../utils/graphql';
+import contractService from '../services/contractService';
 
 // 映射后端数据到前端格式
 const mapBackendContractToFrontend = (contract) => ({
@@ -55,8 +55,8 @@ const ContractsPage = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await graphqlClient.query(CONTRACT_QUERIES.GET_ALL_CONTRACTS);
-      const mappedContracts = data.contracts.map(mapBackendContractToFrontend);
+      const contracts = await contractService.getAllContracts();
+      const mappedContracts = contracts.map(mapBackendContractToFrontend);
       setContracts(mappedContracts);
     } catch (err) {
       console.error('获取合同列表失败:', err);
@@ -149,15 +149,14 @@ const ContractsPage = () => {
       };
 
       if (editingContract) {
-        await graphqlClient.mutation(CONTRACT_MUTATIONS.UPDATE_CONTRACT, {
-          id: editingContract.id,
+        await contractService.updateContract(editingContract.id, {
           ...contractData,
           status: editingContract.status || 'PENDING'
         });
       } else {
         // 创建合同
-        const result = await graphqlClient.mutation(CONTRACT_MUTATIONS.CREATE_CONTRACT, contractData);
-        const newContractId = result.createContract.id;
+        const result = await contractService.createContract(contractData);
+        const newContractId = result.id;
         
         // 创建应收记录
         if (formData.receivableItems && formData.receivableItems.length > 0) {
@@ -165,7 +164,7 @@ const ContractsPage = () => {
             if (!receivable.currency) {
               receivable.currency = 'CNY'; // 确保货币有默认值
             }
-            await graphqlClient.mutation(CONTRACT_MUTATIONS.CREATE_RECEIVABLE, {
+            await contractService.createReceivable({
               contractId: newContractId,
               customerName: receivable.name || '未知客户',
               amount: receivable.amount || 0,
@@ -182,7 +181,7 @@ const ContractsPage = () => {
             if (!payable.currency) {
               payable.currency = 'CNY'; // 确保货币有默认值
             }
-            await graphqlClient.mutation(CONTRACT_MUTATIONS.CREATE_PAYABLE, {
+            await contractService.createPayable({
               contractId: newContractId,
               supplierName: payable.name || '未知供应商',
               amount: payable.amount || 0,
@@ -238,7 +237,7 @@ const ContractsPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm(t('contracts.confirmDelete'))) {
       try {
-        await graphqlClient.mutation(CONTRACT_MUTATIONS.DELETE_CONTRACT, { id });
+        await contractService.deleteContract(id);
         await fetchContracts();
       } catch (err) {
         console.error('删除合同失败:', err);

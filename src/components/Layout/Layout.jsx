@@ -10,9 +10,8 @@ const Layout = ({ children }) => {
 
   const navigation = [
     { name: t('nav.dashboard'), href: '/', icon: Ship },
-    { name: t('nav.contracts'), href: '/contracts', icon: FileText },
-    { name: t('nav.currencies'), href: '/currency-management', icon: DollarSign },
-    { name: t('nav.users'), href: '/users', icon: Users },
+    { name: t('nav.contracts'), href: '/contracts-management', icon: FileText },
+    { name: t('nav.system'), href: '/system-management', icon: Settings },
     { name: t('nav.about'), href: '/about', icon: Info },
   ];
 

@@ -6,7 +6,6 @@ import DashboardPage from './pages/DashboardPage';
 import ContractManagementPage from './pages/ContractManagementPage';
 import AboutPage from './pages/AboutPage';
 import SystemManagementPage from './pages/SystemManagementPage';
-import UserManagementPage from './pages/UserManagementPage';
 import ContractsPage from './pages/ContractsPage';
 import CurrencyManagementPage from './pages/CurrencyManagementPage';
 import LoginPage from './pages/LoginPage';
@@ -54,17 +53,10 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } />
-          <Route path="/contracts" element={
+          <Route path="/contracts-management" element={
             <ProtectedRoute>
               <Layout>
-                <ContractsPage />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/users" element={
-            <ProtectedRoute>
-              <Layout>
-                <UserManagementPage />
+                <ContractManagementPage />
               </Layout>
             </ProtectedRoute>
           } />

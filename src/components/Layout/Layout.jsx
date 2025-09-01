@@ -68,37 +68,32 @@ const Layout = ({ children }) => {
                 })}
               </div>
 
-              {/* 用户信息 */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <User size={16} style={{ color: '#6b7280' }} />
-                  <span style={{ fontSize: '0.875rem', color: '#374151' }}>
-                    {authService.getCurrentUser() || 'admin'}
-                  </span>
-                </div>
-                <button
-                  onClick={() => authService.logout()}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem',
-                    padding: '0.25rem 0.5rem',
-                    borderRadius: '0.375rem',
-                    color: '#6b7280',
-                    backgroundColor: 'transparent',
-                    border: '1px solid #d1d5db',
-                    fontSize: '0.75rem',
-                    cursor: 'pointer',
-                    textDecoration: 'none'
-                  }}
-                  title="登出"
-                >
-                  <LogOut size={14} />
+              {/* 用户选择器 - 与语言选择器样式一致 */}
+              <select 
+                onChange={(e) => {
+                  if (e.target.value === 'logout') {
+                    authService.logout();
+                  }
+                }}
+                style={{
+                  padding: '0.25rem 0.5rem',
+                  borderRadius: '0.375rem',
+                  border: '1px solid #d1d5db',
+                  fontSize: '0.75rem',
+                  backgroundColor: 'white',
+                  cursor: 'pointer',
+                  minWidth: 'auto',
+                  color: '#374151'
+                }}
+                defaultValue=""
+              >
+                <option value="" disabled>{authService.getCurrentUser() || 'admin'}</option>
+                <option value="logout" style={{ color: '#dc2626' }}>
                   {t('nav.logout')}
-                </button>
-              </div>
+                </option>
+              </select>
 
-              {/* 语言选择器 */}
+              {/* 语言选择器 - 精简版本 */}
               <select 
                 onChange={(e) => {
                   const newLang = e.target.value;
@@ -110,15 +105,16 @@ const Layout = ({ children }) => {
                   padding: '0.25rem 0.5rem',
                   borderRadius: '0.375rem',
                   border: '1px solid #d1d5db',
-                  fontSize: '0.875rem',
+                  fontSize: '0.75rem',
                   backgroundColor: 'white',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  minWidth: 'auto'
                 }}
                 defaultValue={localStorage.getItem('language') || 'zh'}
               >
                 <option value="zh">中文</option>
-                <option value="en">English</option>
-                <option value="id">Bahasa Indonesia</option>
+                <option value="en">EN</option>
+                <option value="id">ID</option>
               </select>
             </div>
 

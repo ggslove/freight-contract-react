@@ -192,6 +192,26 @@ const translations = {
       systemSummary: '系统设计考虑了航运业务的复杂性和多样性，特别是多币种结算的需求，能够帮助企业更高效地管理货运合同和相关财务信息。'
     },
 
+    // 登录
+    login: {
+      title: "登录",
+      subtitle: "请使用您的账户登录系统",
+      username: "用户名",
+      password: "密码",
+      usernamePlaceholder: "请输入用户名",
+      passwordPlaceholder: "请输入密码",
+      loginButton: "登录",
+      loggingIn: "登录中...",
+      loginSuccess: "登录成功",
+      loginFailed: "登录失败",
+      invalidCredentials: "用户名或密码错误",
+      demoAccounts: "演示账号",
+      adminAccount: "管理员账号",
+      managerAccount: "业务经理账号",
+      financeAccount: "财务人员账号",
+      passwordHint: "密码"
+    },
+
     // 用户管理
     users: {
       title: "用户管理",
@@ -485,6 +505,26 @@ const translations = {
       stateManagement: 'State Management',
       routingManagement: 'Routing Management',
       systemSummary: 'The system design considers the complexity and diversity of shipping business, especially the needs of multi-currency settlement, helping companies manage freight contracts and related financial information more efficiently.'
+    },
+
+    // Login
+    login: {
+      title: "Login",
+      subtitle: "Please use your account to login to the system",
+      username: "Username",
+      password: "Password",
+      usernamePlaceholder: "Please enter username",
+      passwordPlaceholder: "Please enter password",
+      loginButton: "Login",
+      loggingIn: "Logging in...",
+      loginSuccess: "Login successful",
+      loginFailed: "Login failed",
+      invalidCredentials: "Invalid username or password",
+      demoAccounts: "Demo Accounts",
+      adminAccount: "Administrator Account",
+      managerAccount: "Business Manager Account",
+      financeAccount: "Finance Staff Account",
+      passwordHint: "Password"
     },
 
     // User Management
@@ -815,6 +855,26 @@ const translations = {
       stateManagement: 'Manajemen Status',
       routingManagement: 'Manajemen Perutean',
       systemSummary: 'Desain sistem mempertimbangkan kompleksitas dan keragaman bisnis pengiriman, terutama kebutuhan penyelesaian multi-mata uang, membantu perusahaan mengelola kontrak pengiriman dan informasi keuangan terkait lebih efisien.'
+    },
+
+    // Login
+    login: {
+      title: "Masuk",
+      subtitle: "Silakan gunakan akun Anda untuk masuk ke sistem",
+      username: "Nama Pengguna",
+      password: "Kata Sandi",
+      usernamePlaceholder: "Silakan masukkan nama pengguna",
+      passwordPlaceholder: "Silakan masukkan kata sandi",
+      loginButton: "Masuk",
+      loggingIn: "Sedang masuk...",
+      loginSuccess: "Berhasil masuk",
+      loginFailed: "Gagal masuk",
+      invalidCredentials: "Nama pengguna atau kata sandi salah",
+      demoAccounts: "Akun Demo",
+      adminAccount: "Akun Administrator",
+      managerAccount: "Akun Manajer Bisnis",
+      financeAccount: "Akun Staf Keuangan",
+      passwordHint: "Kata Sandi"
     },
 
     // Manajemen Pengguna

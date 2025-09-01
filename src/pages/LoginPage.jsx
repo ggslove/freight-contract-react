@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogIn, User, Lock } from 'lucide-react';
+import { Ship, User, Lock } from 'lucide-react';
 import { t } from '../utils/i18n';
 import authService from '../services/authService';
 
@@ -34,6 +34,13 @@ const LoginPage = () => {
     return null;
   }
 
+  const handleLanguageChange = (e) => {
+    const newLang = e.target.value;
+    localStorage.setItem('language', newLang);
+    window.dispatchEvent(new CustomEvent('languageChanged', { detail: newLang }));
+    window.location.reload();
+  };
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -49,12 +56,38 @@ const LoginPage = () => {
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
         padding: '2rem',
         width: '100%',
-        maxWidth: '400px'
+        maxWidth: '400px',
+        position: 'relative'
       }}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <LogIn size={48} style={{ color: '#3b82f6', marginBottom: '1rem' }} />
+        {/* 语言选择器 - 右上角 */}
+        <div style={{
+          position: 'absolute',
+          top: '1rem',
+          right: '1rem'
+        }}>
+          <select 
+            onChange={handleLanguageChange}
+            style={{
+              padding: '0.25rem 0.5rem',
+              borderRadius: '0.375rem',
+              border: '1px solid #d1d5db',
+              fontSize: '0.75rem',
+              backgroundColor: 'white',
+              cursor: 'pointer',
+              color: '#6b7280'
+            }}
+            defaultValue={localStorage.getItem('language') || 'zh'}
+          >
+            <option value="zh">中文</option>
+            <option value="en">EN</option>
+            <option value="id">ID</option>
+          </select>
+        </div>
+
+        <div style={{ textAlign: 'center', marginBottom: '2rem', paddingTop: '1rem' }}>
+          <Ship size={48} style={{ color: '#2563eb', marginBottom: '1rem' }} />
           <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937' }}>
-            {t('login.title')}
+            {t('app.title')}
           </h1>
           <p style={{ color: '#6b7280', marginTop: '0.5rem' }}>
             {t('login.subtitle')}
@@ -160,7 +193,7 @@ const LoginPage = () => {
               cursor: loading ? 'not-allowed' : 'pointer'
             }}
           >
-            {loading ? t('login.loggingIn') : t('login.submit')}
+            {loading ? t('login.loggingIn') : t('login.loginButton')}
           </button>
         </form>
 
@@ -172,9 +205,10 @@ const LoginPage = () => {
           fontSize: '0.875rem',
           color: '#6b7280'
         }}>
-          <p>{t('login.demoCredentials')}</p>
-          <p><strong>用户名:</strong> admin</p>
-          <p><strong>密码:</strong> admin123</p>
+          <p><strong>{t('login.demoAccounts')}:</strong></p>
+          <p>admin / admin123</p>
+          <p>manager / manager123</p>
+          <p>finance / finance123</p>
         </div>
       </div>
     </div>

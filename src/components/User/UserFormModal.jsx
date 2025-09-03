@@ -13,11 +13,15 @@ const UserFormModal = ({
   if (!isOpen) return null;
 
   const roleOptions = [
-    { value: 'SUPER_ADMIN', label: t('users.superAdmin') },
-    { value: 'SYSTEM_ADMIN', label: t('users.systemAdmin') },
-    { value: 'BUSINESS_MANAGER', label: t('users.businessManager') },
-    { value: 'FINANCE_STAFF', label: t('users.financeStaff') },
-    { value: 'NORMAL_USER', label: t('users.normalUser') }
+    { value: 'ADMIN', label: t('users.systemAdmin') },
+    { value: 'MANAGER', label: t('users.businessManager') },
+    { value: 'FINANCE', label: t('users.financeStaff') },
+    { value: 'USER', label: t('users.normalUser') }
+  ];
+
+  const statusOptions = [
+    { value: 'ENABLED', label: t('common.enabled') },
+    { value: 'DISABLED', label: t('common.disabled') }
   ];
 
   const handleInputChange = (field, value) => {
@@ -39,20 +43,51 @@ const UserFormModal = ({
     }}>
       <div style={{
         backgroundColor: 'white',
-        padding: '2rem',
         borderRadius: '0.5rem',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         width: '100%',
-        maxWidth: '500px',
-        maxHeight: '80vh',
-        overflowY: 'auto'
+        maxWidth: '60rem',
+        maxHeight: '90vh',
+        overflow: 'auto'
       }}>
-        <h2 style={{ marginTop: 0 }}>
-          {isEditMode ? t('users.editUser') : t('users.addUser')}
-        </h2>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '1.5rem',
+          borderBottom: '1px solid #e5e7eb'
+        }}>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: 0 }}>
+            {isEditMode ? t('users.editUser') : t('users.addUser')}
+          </h3>
+          <button
+            onClick={onClose}
+            style={{
+              color: '#6b7280',
+              cursor: 'pointer',
+              background: 'none',
+              border: 'none',
+              padding: 0
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <form onSubmit={onSubmit} style={{ padding: '1.5rem' }}>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(3, 1fr)', 
+            gap: '1rem',
+            marginBottom: '1.5rem'
+          }}>
           <div>
-            <label>{t('users.username')}</label>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+              {t('users.username')}
+            </label>
             <input
               type="text"
               value={formData.username}
@@ -60,15 +95,17 @@ const UserFormModal = ({
               style={{
                 width: '100%',
                 padding: '0.5rem',
-                border: '1px solid #d9d9d9',
-                borderRadius: '0.25rem',
-                marginTop: '0.25rem'
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
               }}
             />
           </div>
           
           <div>
-            <label>{t('users.realName')}</label>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+              {t('users.realName')}
+            </label>
             <input
               type="text"
               value={formData.realName}
@@ -76,15 +113,17 @@ const UserFormModal = ({
               style={{
                 width: '100%',
                 padding: '0.5rem',
-                border: '1px solid #d9d9d9',
-                borderRadius: '0.25rem',
-                marginTop: '0.25rem'
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
               }}
             />
           </div>
           
           <div>
-            <label>{t('users.email')}</label>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+              {t('users.email')}
+            </label>
             <input
               type="email"
               value={formData.email}
@@ -92,15 +131,17 @@ const UserFormModal = ({
               style={{
                 width: '100%',
                 padding: '0.5rem',
-                border: '1px solid #d9d9d9',
-                borderRadius: '0.25rem',
-                marginTop: '0.25rem'
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
               }}
             />
           </div>
           
           <div>
-            <label>{t('users.phone')}</label>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+              {t('users.phone')}
+            </label>
             <input
               type="tel"
               value={formData.phone}
@@ -108,24 +149,26 @@ const UserFormModal = ({
               style={{
                 width: '100%',
                 padding: '0.5rem',
-                border: '1px solid #d9d9d9',
-                borderRadius: '0.25rem',
-                marginTop: '0.25rem'
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
               }}
             />
           </div>
           
           <div>
-            <label>{t('users.role')}</label>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+              {t('users.role')}
+            </label>
             <select
               value={formData.role}
               onChange={(e) => handleInputChange('role', e.target.value)}
               style={{
                 width: '100%',
                 padding: '0.5rem',
-                border: '1px solid #d9d9d9',
-                borderRadius: '0.25rem',
-                marginTop: '0.25rem'
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
               }}
             >
               <option value="">{t('users.selectRole')}</option>
@@ -134,11 +177,34 @@ const UserFormModal = ({
               ))}
             </select>
           </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+              {t('users.status')}
+            </label>
+            <select
+              value={formData.status || 'ENABLED'}
+              onChange={(e) => handleInputChange('status', e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
+              }}
+            >
+              {statusOptions.map(status => (
+                <option key={status.value} value={status.value}>{status.label}</option>
+              ))}
+            </select>
+          </div>
           
           {!isEditMode && (
             <>
               <div>
-                <label>{t('users.password')}</label>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+                  {t('users.password')}
+                </label>
                 <input
                   type="password"
                   value={formData.password}
@@ -146,15 +212,17 @@ const UserFormModal = ({
                   style={{
                     width: '100%',
                     padding: '0.5rem',
-                    border: '1px solid #d9d9d9',
-                    borderRadius: '0.25rem',
-                    marginTop: '0.25rem'
+                    border: '1px solid #d1d5db',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem'
                   }}
                 />
               </div>
               
               <div>
-                <label>{t('users.confirmPassword')}</label>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+                  {t('users.confirmPassword')}
+                </label>
                 <input
                   type="password"
                   value={formData.confirmPassword}
@@ -162,9 +230,9 @@ const UserFormModal = ({
                   style={{
                     width: '100%',
                     padding: '0.5rem',
-                    border: '1px solid #d9d9d9',
-                    borderRadius: '0.25rem',
-                    marginTop: '0.25rem'
+                    border: '1px solid #d1d5db',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem'
                   }}
                 />
               </div>
@@ -173,7 +241,9 @@ const UserFormModal = ({
           
           {isEditMode && (
             <div>
-              <label>{t('users.newPassword')} ({t('users.optional')})</label>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+                {t('users.newPassword')} ({t('users.optional')})
+              </label>
               <input
                 type="password"
                 value={formData.password}
@@ -181,32 +251,41 @@ const UserFormModal = ({
                 style={{
                   width: '100%',
                   padding: '0.5rem',
-                  border: '1px solid #d9d9d9',
-                  borderRadius: '0.25rem',
-                  marginTop: '0.25rem'
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem'
                 }}
               />
             </div>
           )}
         </div>
         
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
+        <div style={{ 
+          display: 'flex', 
+          gap: '1rem', 
+          justifyContent: 'flex-end', 
+          padding: '1.5rem',
+          borderTop: '1px solid #e5e7eb',
+          backgroundColor: '#fafafa'
+        }}>
           <button
+            type="button"
             onClick={onClose}
             style={{
               padding: '0.5rem 1rem',
               backgroundColor: 'white',
-              color: '#666',
-              border: '1px solid #d9d9d9',
+              color: '#374151',
+              border: '1px solid #d1d5db',
               borderRadius: '0.375rem',
               cursor: 'pointer',
-              fontSize: '0.875rem'
+              fontSize: '0.875rem',
+              fontWeight: '500'
             }}
           >
             {t('common.cancel')}
           </button>
           <button
-            onClick={onSubmit}
+            type="submit"
             style={{
               padding: '0.5rem 1rem',
               backgroundColor: '#1890ff',
@@ -214,12 +293,14 @@ const UserFormModal = ({
               border: 'none',
               borderRadius: '0.375rem',
               cursor: 'pointer',
-              fontSize: '0.875rem'
+              fontSize: '0.875rem',
+              fontWeight: '500'
             }}
           >
             {isEditMode ? t('users.confirmEdit') : t('users.confirmAdd')}
           </button>
         </div>
+        </form>
       </div>
     </div>
   );

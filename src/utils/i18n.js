@@ -31,7 +31,9 @@ const translations = {
       success: '成功',
       error: '错误',
       warning: '警告',
-      info: '信息'
+      info: '信息',
+      enabled: '启用',
+      disabled: '禁用'
     },
 
     // 导航
@@ -117,7 +119,7 @@ const translations = {
       type: '类型',
       enterItemName: '输入项目名称',
       contractDetails: '合同详情',
-      searchPlaceholder: '搜索业务编号、提单号或客户...',
+      searchPlaceholder: '搜索业务编号、提单号、发票号或客户...',
       filterSalesman: '所有业务员',
       confirmDelete: '确定要删除此合同吗？',
       deleteSuccess: '合同删除成功',
@@ -228,6 +230,8 @@ const translations = {
       role: "角色",
       status: "状态",
       createTime: "创建时间",
+      createdAt: "创建时间",
+      activeUsers: "活跃用户",
       lastLogin: "最后登录",
       actions: "操作",
       password: "密码",
@@ -245,7 +249,16 @@ const translations = {
       enabled: "启用",
       disabled: "禁用",
       zhangsan: "张三",
-      lisi: "李四"
+      lisi: "李四",
+      totalUsersDesc: "系统中的总用户数",
+      activeUsersDesc: "当前启用的用户数量",
+      fetchUsersFailed: "获取用户列表失败",
+      createUserFailed: "创建用户失败",
+      createUserFailedEmpty: "创建用户失败：服务器返回空数据",
+      updateUserFailed: "更新用户失败",
+      updateUserFailedEmpty: "更新用户失败：服务器返回空数据",
+      deleteUserFailed: "删除用户失败",
+      updateUserStatusFailed: "更新用户状态失败"
     },
 
     // 币种管理
@@ -345,7 +358,9 @@ const translations = {
       success: 'Success',
       error: 'Error',
       warning: 'Warning',
-      info: 'Info'
+      info: 'Info',
+      enabled: 'Enabled',
+      disabled: 'Disabled'
     },
 
     // Navigation
@@ -432,7 +447,7 @@ const translations = {
       type: 'Type',
       enterItemName: 'Enter item name',
       contractDetails: 'Contract Details',
-      searchPlaceholder: 'Search contract number, bill number or customer...',
+      searchPlaceholder: 'Search contract number, bill number, invoice number or customer...',
       filterSalesman: 'All Salesmen',
       confirmDelete: 'Are you sure you want to delete this contract?',
       deleteSuccess: 'Contract deleted successfully',
@@ -543,6 +558,8 @@ const translations = {
       role: "Role",
       status: "Status",
       createTime: "Create Time",
+      createdAt: "Create Time",
+      activeUsers: "Active Users",
       lastLogin: "Last Login",
       actions: "Actions",
       password: "Password",
@@ -560,7 +577,16 @@ const translations = {
       enabled: "Enabled",
       disabled: "Disabled",
       zhangsan: "Zhang San",
-      lisi: "Li Si"
+      lisi: "Li Si",
+      totalUsersDesc: "Total number of users in the system",
+      activeUsersDesc: "Number of currently enabled users",
+      fetchUsersFailed: "Failed to fetch users",
+      createUserFailed: "Failed to create user",
+      createUserFailedEmpty: "Failed to create user: Server returned empty data",
+      updateUserFailed: "Failed to update user",
+      updateUserFailedEmpty: "Failed to update user: Server returned empty data",
+      deleteUserFailed: "Failed to delete user",
+      updateUserStatusFailed: "Failed to update user status"
     },
 
     // Currencies
@@ -683,7 +709,9 @@ const translations = {
       success: 'Sukses',
       error: 'Error',
       warning: 'Peringatan',
-      info: 'Info'
+      info: 'Info',
+      enabled: 'Aktif',
+      disabled: 'Tidak Aktif'
     },
 
     // Navigasi
@@ -760,7 +788,7 @@ const translations = {
       itemAmount: 'Jumlah',
       itemCurrency: 'Mata Uang',
       contractDetails: 'Detail Kontrak',
-      searchPlaceholder: 'Cari nomor kontrak, nomor bill atau pelanggan...',
+      searchPlaceholder: 'Cari nomor kontrak, nomor bill, nomor faktur atau pelanggan...',
       filterSalesman: 'Semua Sales',
       confirmDelete: 'Apakah Anda yakin ingin menghapus kontrak ini?',
       deleteSuccess: 'Kontrak berhasil dihapus',
@@ -893,6 +921,8 @@ const translations = {
       role: "Peran",
       status: "Status",
       createTime: "Waktu Pembuatan",
+      createdAt: "Waktu Pembuatan",
+      activeUsers: "Pengguna Aktif",
       lastLogin: "Login Terakhir",
       actions: "Aksi",
       password: "Kata Sandi",
@@ -910,7 +940,9 @@ const translations = {
       enabled: "Aktif",
       disabled: "Tidak Aktif",
       zhangsan: "Zhang San",
-      lisi: "Li Si"
+      lisi: "Li Si",
+      totalUsersDesc: "Jumlah total pengguna dalam sistem",
+      activeUsersDesc: "Jumlah pengguna yang saat ini aktif"
     },
 
     // Status

@@ -10,14 +10,41 @@ const authLink = setContext((_, { headers }) => {
   return {
     headers: {
       ...headers,
-      authorization: token ? `Bearer ${token}` : "",
+      authorization: token ? `${token}` : "",
     }
   };
 });
 
 const client = new ApolloClient({
   link: authLink.concat(httpLink),
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          contracts: {
+            merge(existing = [], incoming) {
+              return incoming;
+            }
+          },
+          receivables: {
+            merge(existing = [], incoming) {
+              return incoming;
+            }
+          },
+          payables: {
+            merge(existing = [], incoming) {
+              return incoming;
+            }
+          },
+          users: {
+            merge(existing = [], incoming) {
+              return incoming;
+            }
+          }
+        }
+      }
+    }
+  }),
   defaultOptions: {
     watchQuery: {
       errorPolicy: 'all',

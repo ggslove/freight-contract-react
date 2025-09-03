@@ -1,4 +1,4 @@
-// 合同相关的GraphQL变更
+// 合同相关的GraphQL变更 - 与后端schema完全匹配
 
 export const CONTRACT_MUTATIONS = {
   // 创建合同
@@ -38,6 +38,8 @@ export const CONTRACT_MUTATIONS = {
         contractDate
         deliveryDate
         description
+        createdAt
+        updatedAt
       }
     }
   `,
@@ -81,6 +83,8 @@ export const CONTRACT_MUTATIONS = {
         contractDate
         deliveryDate
         description
+        createdAt
+        updatedAt
       }
     }
   `,
@@ -92,126 +96,134 @@ export const CONTRACT_MUTATIONS = {
     }
   `,
 
-  // 创建应收
+  // 创建应收款
   CREATE_RECEIVABLE: `
     mutation CreateReceivable(
       $contractId: ID!
       $customerName: String!
       $amount: Float!
       $currency: String!
-      $status: ReceivableStatus!
       $dueDate: DateTime
+      $status: ReceivableStatus!
     ) {
       createReceivable(
         contractId: $contractId
         customerName: $customerName
         amount: $amount
         currency: $currency
-        status: $status
         dueDate: $dueDate
+        status: $status
       ) {
         id
         customerName
         amount
         currency
-        status
         dueDate
+        status
+        createdAt
+        updatedAt
       }
     }
   `,
 
-  // 更新应收
+  // 更新应收款
   UPDATE_RECEIVABLE: `
     mutation UpdateReceivable(
       $id: ID!
       $customerName: String
       $amount: Float
       $currency: String
-      $status: ReceivableStatus
       $dueDate: DateTime
+      $status: ReceivableStatus
     ) {
       updateReceivable(
         id: $id
         customerName: $customerName
         amount: $amount
         currency: $currency
-        status: $status
         dueDate: $dueDate
+        status: $status
       ) {
         id
         customerName
         amount
         currency
-        status
         dueDate
+        status
+        createdAt
+        updatedAt
       }
     }
   `,
 
-  // 删除应收
+  // 删除应收款
   DELETE_RECEIVABLE: `
     mutation DeleteReceivable($id: ID!) {
       deleteReceivable(id: $id)
     }
   `,
 
-  // 创建应付
+  // 创建应付款
   CREATE_PAYABLE: `
     mutation CreatePayable(
       $contractId: ID!
       $supplierName: String!
       $amount: Float!
       $currency: String!
-      $status: PayableStatus!
       $dueDate: DateTime
+      $status: PayableStatus!
     ) {
       createPayable(
         contractId: $contractId
         supplierName: $supplierName
         amount: $amount
         currency: $currency
-        status: $status
         dueDate: $dueDate
+        status: $status
       ) {
         id
         supplierName
         amount
         currency
-        status
         dueDate
+        status
+        createdAt
+        updatedAt
       }
     }
   `,
 
-  // 更新应付
+  // 更新应付款
   UPDATE_PAYABLE: `
     mutation UpdatePayable(
       $id: ID!
       $supplierName: String
       $amount: Float
       $currency: String
-      $status: PayableStatus
       $dueDate: DateTime
+      $status: PayableStatus
     ) {
       updatePayable(
         id: $id
         supplierName: $supplierName
         amount: $amount
         currency: $currency
-        status: $status
         dueDate: $dueDate
+        status: $status
       ) {
         id
         supplierName
         amount
         currency
-        status
         dueDate
+        status
+        createdAt
+        updatedAt
       }
     }
   `,
 
-  // 删除应付
+  // 删除应付款
   DELETE_PAYABLE: `
     mutation DeletePayable($id: ID!) {
       deletePayable(id: $id)

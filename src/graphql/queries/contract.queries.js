@@ -1,4 +1,4 @@
-// 合同相关的GraphQL查询
+// 合同相关的GraphQL查询 - 与后端schema完全匹配
 
 export const CONTRACT_QUERIES = {
   // 获取所有合同
@@ -16,50 +16,8 @@ export const CONTRACT_QUERIES = {
         contractDate
         deliveryDate
         description
-        receivables {
-          id
-          customerName
-          amount
-          currency
-          status
-          dueDate
-        }
-        payables {
-          id
-          supplierName
-          amount
-          currency
-          status
-          dueDate
-        }
-      }
-    }
-  `,
-
-  // 根据合同ID获取应收
-  GET_RECEIVABLES_BY_CONTRACT: `
-    query GetReceivablesByContract($contractId: ID!) {
-      receivablesByContract(contractId: $contractId) {
-        id
-        customerName
-        amount
-        currency
-        status
-        dueDate
-      }
-    }
-  `,
-
-  // 根据合同ID获取应付
-  GET_PAYABLES_BY_CONTRACT: `
-    query GetPayablesByContract($contractId: ID!) {
-      payablesByContract(contractId: $contractId) {
-        id
-        supplierName
-        amount
-        currency
-        status
-        dueDate
+        createdAt
+        updatedAt
       }
     }
   `,
@@ -84,52 +42,23 @@ export const CONTRACT_QUERIES = {
           customerName
           amount
           currency
-          status
           dueDate
+          status
+          createdAt
+          updatedAt
         }
         payables {
           id
           supplierName
           amount
           currency
-          status
           dueDate
-        }
-      }
-    }
-  `,
-
-  // 搜索合同
-  SEARCH_CONTRACTS: `
-    query SearchContracts($keyword: String!) {
-      searchContracts(keyword: $keyword) {
-        id
-        businessNo
-        customerName
-        billNo
-        salesman
-        amount
-        currency
-        status
-        contractDate
-        deliveryDate
-        description
-        receivables {
-          id
-          customerName
-          amount
-          currency
           status
-          dueDate
+          createdAt
+          updatedAt
         }
-        payables {
-          id
-          supplierName
-          amount
-          currency
-          status
-          dueDate
-        }
+        createdAt
+        updatedAt
       }
     }
   `,
@@ -149,22 +78,104 @@ export const CONTRACT_QUERIES = {
         contractDate
         deliveryDate
         description
-        receivables {
-          id
-          customerName
-          amount
-          currency
-          status
-          dueDate
-        }
-        payables {
-          id
-          supplierName
-          amount
-          currency
-          status
-          dueDate
-        }
+        createdAt
+        updatedAt
+      }
+    }
+  `,
+
+  // 获取应收款列表
+  GET_ALL_RECEIVABLES: `
+    query GetAllReceivables {
+      receivables {
+        id
+        customerName
+        amount
+        currency
+        dueDate
+        status
+        createdAt
+        updatedAt
+      }
+    }
+  `,
+
+  // 根据ID获取应收款
+  GET_RECEIVABLE_BY_ID: `
+    query GetReceivableById($id: ID!) {
+      receivable(id: $id) {
+        id
+        customerName
+        amount
+        currency
+        dueDate
+        status
+        createdAt
+        updatedAt
+      }
+    }
+  `,
+
+  // 根据合同ID获取应收款
+  GET_RECEIVABLES_BY_CONTRACT: `
+    query GetReceivablesByContract($contractId: ID!) {
+      receivablesByContract(contractId: $contractId) {
+        id
+        customerName
+        amount
+        currency
+        dueDate
+        status
+        createdAt
+        updatedAt
+      }
+    }
+  `,
+
+  // 获取应付款列表
+  GET_ALL_PAYABLES: `
+    query GetAllPayables {
+      payables {
+        id
+        supplierName
+        amount
+        currency
+        dueDate
+        status
+        createdAt
+        updatedAt
+      }
+    }
+  `,
+
+  // 根据ID获取应付款
+  GET_PAYABLE_BY_ID: `
+    query GetPayableById($id: ID!) {
+      payable(id: $id) {
+        id
+        supplierName
+        amount
+        currency
+        dueDate
+        status
+        createdAt
+        updatedAt
+      }
+    }
+  `,
+
+  // 根据合同ID获取应付款
+  GET_PAYABLES_BY_CONTRACT: `
+    query GetPayablesByContract($contractId: ID!) {
+      payablesByContract(contractId: $contractId) {
+        id
+        supplierName
+        amount
+        currency
+        dueDate
+        status
+        createdAt
+        updatedAt
       }
     }
   `

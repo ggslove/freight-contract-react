@@ -1,4 +1,4 @@
-// 用户相关的GraphQL查询
+// 用户相关的GraphQL查询 - 与后端schema完全匹配
 
 export const USER_QUERIES = {
   // 获取所有用户
@@ -7,14 +7,14 @@ export const USER_QUERIES = {
       users {
         id
         username
-        email
         realName
+        email
         phone
         role
         status
+        lastLogin
         createdAt
         updatedAt
-        lastLogin
       }
     }
   `,
@@ -25,14 +25,14 @@ export const USER_QUERIES = {
       user(id: $id) {
         id
         username
-        email
         realName
+        email
         phone
         role
         status
+        lastLogin
         createdAt
         updatedAt
-        lastLogin
       }
     }
   `,
@@ -43,28 +43,32 @@ export const USER_QUERIES = {
       userByUsername(username: $username) {
         id
         username
-        email
         realName
+        email
         phone
         role
         status
+        lastLogin
         createdAt
+        updatedAt
       }
     }
   `,
 
-  // 获取当前用户信息 - 需要身份验证
+  // 获取当前用户信息
   GET_CURRENT_USER: `
     query GetCurrentUser {
       user(id: 1) {
         id
         username
-        email
         realName
+        email
         phone
         role
         status
+        lastLogin
         createdAt
+        updatedAt
       }
     }
   `

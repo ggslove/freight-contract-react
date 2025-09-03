@@ -21,6 +21,7 @@ export const filterContracts = (contracts, searchTerm) => {
     contract.businessNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     contract.client?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     contract.blNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    contract.invNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     contract.salesman?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 };

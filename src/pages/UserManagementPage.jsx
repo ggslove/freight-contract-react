@@ -25,11 +25,10 @@ const UserManagementPage = () => {
   });
 
   const roles = [
-    { value: 'SUPER_ADMIN', label: t('users.superAdmin') },
-    { value: 'SYSTEM_ADMIN', label: t('users.systemAdmin') },
-    { value: 'BUSINESS_MANAGER', label: t('users.businessManager') },
-    { value: 'FINANCE_STAFF', label: t('users.financeStaff') },
-    { value: 'NORMAL_USER', label: t('users.normalUser') }
+    { value: 'ADMIN', label: t('users.systemAdmin') },
+    { value: 'MANAGER', label: t('users.businessManager') },
+    { value: 'FINANCE', label: t('users.financeStaff') },
+    { value: 'USER', label: t('users.normalUser') }
   ];
 
   const fetchUsers = async () => {
@@ -39,8 +38,8 @@ const UserManagementPage = () => {
       const data = await userService.getAllUsers();
       setUsers(data);
     } catch (error) {
-      console.error('获取用户列表失败:', error);
-      setError('获取用户列表失败: ' + error.message);
+      console.error(t('users.fetchUsersFailed'), error);
+      setError(t('users.fetchUsersFailed') + ': ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -71,7 +70,7 @@ const UserManagementPage = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleString('zh-CN');
+    return new Date(dateString).toLocaleString();
   };
 
   const handleAddUser = async () => {
@@ -87,14 +86,20 @@ const UserManagementPage = () => {
         email: formData.email,
         phone: formData.phone,
         role: formData.role,
-        password: formData.password
+        password: formData.password,
+        status: 'ENABLED'
       });
+      console.log("---------------> newUser:", newUser);
       
-      setUsers([...users, newUser]);
-      setShowAddModal(false);
-      setFormData({ username: '', realName: '', email: '', phone: '', role: '', password: '', confirmPassword: '' });
+      if (newUser) {
+        setUsers([...users, newUser]);
+        setShowAddModal(false);
+        setFormData({ username: '', realName: '', email: '', phone: '', role: '', status: '', password: '', confirmPassword: '' });
+      } else {
+        alert(t('users.createUserFailedEmpty'));
+      }
     } catch (error) {
-      alert('创建用户失败: ' + error.message);
+      alert(t('users.createUserFailed') + ': ' + error.message);
     }
   };
 
@@ -106,15 +111,21 @@ const UserManagementPage = () => {
         email: formData.email,
         phone: formData.phone,
         role: formData.role,
+        status: formData.status,
         ...(formData.password && { password: formData.password })
       });
-      
-      setUsers(users.map(user => user.id === selectedUser.id ? updatedUser : user));
-      setShowEditModal(false);
-      setSelectedUser(null);
-      setFormData({ username: '', realName: '', email: '', phone: '', role: '', password: '', confirmPassword: '' });
+     
+      if (updatedUser) {
+        setUsers(users.map(user => user.id === selectedUser.id ? updatedUser : user));
+        setShowEditModal(false);
+        setSelectedUser(null);
+        setFormData({ username: '', realName: '', email: '', phone: '', role: '', status: '', password: '', confirmPassword: '' });
+      } else {
+        alert(t('users.updateUserFailedEmpty') + ': 未能获取更新后的用户数据');
+      }
     } catch (error) {
-      alert('更新用户失败: ' + error.message);
+      console.error('更新用户失败:', error);
+      alert(t('users.updateUserFailed') + ': ' + (error.message || '未知错误'));
     }
   };
 
@@ -124,7 +135,7 @@ const UserManagementPage = () => {
         await userService.deleteUser(id);
         setUsers(users.filter(user => user.id !== id));
       } catch (error) {
-        alert('删除用户失败: ' + error.message);
+        alert(t('users.deleteUserFailed') + ': ' + error.message);
       }
     }
   };
@@ -137,7 +148,7 @@ const UserManagementPage = () => {
       const updatedUser = await userService.updateUserStatus(id, newStatus);
       setUsers(users.map(u => u.id === id ? updatedUser : u));
     } catch (error) {
-      alert('更新用户状态失败: ' + error.message);
+      alert(t('users.updateUserStatusFailed') + ': ' + error.message);
     }
   };
 
@@ -149,6 +160,7 @@ const UserManagementPage = () => {
       email: user.email,
       phone: user.phone || '',
       role: user.role,
+      status: user.status || 'ENABLED',
       password: '',
       confirmPassword: ''
     });
@@ -158,7 +170,7 @@ const UserManagementPage = () => {
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-        <div>加载中...</div>
+        <div>{t('common.loading')}</div>
       </div>
     );
   }
@@ -215,7 +227,7 @@ const UserManagementPage = () => {
         isOpen={showAddModal}
         onClose={() => {
           setShowAddModal(false);
-          setFormData({ username: '', realName: '', email: '', phone: '', role: '', password: '', confirmPassword: '' });
+          setFormData({ username: '', realName: '', email: '', phone: '', role: '', status: '', password: '', confirmPassword: '' });
         }}
         onSubmit={handleAddUser}
         formData={formData}
@@ -229,7 +241,7 @@ const UserManagementPage = () => {
         onClose={() => {
           setShowEditModal(false);
           setSelectedUser(null);
-          setFormData({ username: '', realName: '', email: '', phone: '', role: '', password: '', confirmPassword: '' });
+          setFormData({ username: '', realName: '', email: '', phone: '', role: '', status: '', password: '', confirmPassword: '' });
         }}
         onSubmit={handleEditUser}
         formData={formData}

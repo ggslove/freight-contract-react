@@ -1,38 +1,36 @@
-// 用户相关的GraphQL变更
+// 用户相关的GraphQL变更 - 与后端schema完全匹配
 
 export const USER_MUTATIONS = {
   // 创建用户
   CREATE_USER: `
     mutation CreateUser(
       $username: String!
+      $realName: String
       $email: String!
-      $fullName: String!
-      $password: String!
       $phone: String
+      $password: String!
+      $role: Role!
       $status: UserStatus!
-      $roleIds: [ID!]
     ) {
       createUser(
         username: $username
+        realName: $realName
         email: $email
-        fullName: $fullName
-        password: $password
         phone: $phone
+        password: $password
+        role: $role
         status: $status
-        roleIds: $roleIds
       ) {
         id
         username
+        realName
         email
-        fullName
         phone
+        role
         status
+        lastLogin
         createdAt
-        roles {
-          id
-          name
-          description
-        }
+        updatedAt
       }
     }
   `,
@@ -42,33 +40,33 @@ export const USER_MUTATIONS = {
     mutation UpdateUser(
       $id: ID!
       $username: String
+      $realName: String
       $email: String
-      $fullName: String
       $phone: String
+      $password: String
+      $role: Role
       $status: UserStatus
-      $roleIds: [ID!]
     ) {
       updateUser(
         id: $id
         username: $username
+        realName: $realName
         email: $email
-        fullName: $fullName
         phone: $phone
+        password: $password
+        role: $role
         status: $status
-        roleIds: $roleIds
       ) {
         id
         username
+        realName
         email
-        fullName
         phone
+        role
         status
+        lastLogin
+        createdAt
         updatedAt
-        roles {
-          id
-          name
-          description
-        }
       }
     }
   `,
@@ -87,6 +85,7 @@ export const USER_MUTATIONS = {
         id
         username
         email
+        realName
       }
     }
   `,
@@ -98,6 +97,7 @@ export const USER_MUTATIONS = {
         id
         username
         email
+        realName
       }
     }
   `

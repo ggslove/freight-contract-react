@@ -1,6 +1,5 @@
 import { gql } from '@apollo/client';
 import client from '../apollo-client';
-import userService from './userService';
 
 // 角色枚举
 export const RoleEnum = {
@@ -51,7 +50,26 @@ const roleService = {
   // 获取所有角色（基于用户数据推断）
   async getAllRoles() {
     try {
-      const users = await userService.getAllUsers();
+      const response = await client.query({
+        query: gql`
+          query GetAllUsersForRoles {
+            users {
+              id
+              username
+              realName
+              email
+              role
+              status
+              lastLogin
+              createdAt
+              updatedAt
+            }
+          }
+        `,
+        errorPolicy: 'all'
+      });
+
+      const users = response.data?.users || [];
       
       // 从用户数据中统计角色使用情况
       const roleStats = {};
@@ -94,7 +112,27 @@ const roleService = {
   // 获取角色下的用户
   async getUsersByRole(role) {
     try {
-      const users = await userService.getAllUsers();
+      const response = await client.query({
+        query: gql`
+          query GetUsersByRole($role: String!) {
+            users {
+              id
+              username
+              realName
+              email
+              role
+              status
+              lastLogin
+              createdAt
+              updatedAt
+            }
+          }
+        `,
+        variables: { role },
+        errorPolicy: 'all'
+      });
+
+      const users = response.data?.users || [];
       return users.filter(user => user.role === role);
     } catch (error) {
       console.error('获取角色用户失败:', error);
@@ -105,7 +143,19 @@ const roleService = {
   // 获取角色统计信息
   async getRoleStatistics() {
     try {
-      const users = await userService.getAllUsers();
+      const response = await client.query({
+        query: gql`
+          query GetRoleStatistics {
+            users {
+              id
+              role
+            }
+          }
+        `,
+        errorPolicy: 'all'
+      });
+
+      const users = response.data?.users || [];
       
       const roleStats = {};
       users.forEach(user => {

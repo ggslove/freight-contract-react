@@ -99,6 +99,7 @@ const UserManagementPage = () => {
         alert(t('users.createUserFailedEmpty'));
       }
     } catch (error) {
+      // /创建用户失败: Failed to fetch
       alert(t('users.createUserFailed') + ': ' + error.message);
     }
   };

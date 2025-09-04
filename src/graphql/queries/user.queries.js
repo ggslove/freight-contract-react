@@ -10,8 +10,6 @@ export const USER_QUERIES = {
         realName
         email
         phone
-        role
-        status
         lastLogin
         createdAt
         updatedAt
@@ -28,8 +26,6 @@ export const USER_QUERIES = {
         realName
         email
         phone
-        role
-        status
         lastLogin
         createdAt
         updatedAt
@@ -46,8 +42,6 @@ export const USER_QUERIES = {
         realName
         email
         phone
-        role
-        status
         lastLogin
         createdAt
         updatedAt
@@ -64,8 +58,6 @@ export const USER_QUERIES = {
         realName
         email
         phone
-        role
-        status
         lastLogin
         createdAt
         updatedAt

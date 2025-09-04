@@ -59,7 +59,6 @@ const userService = {
     const { data } = await client.mutate({
       mutation: gql(CREATE_USER),
       variables,
-      fetchPolicy: 'network-only'
     });
 
     return data.createUser;
@@ -67,20 +66,9 @@ const userService = {
 
   // 更新用户
   async updateUser(id, userData) {
-    // 构建变量 - 只包含非空字段
-    const variables = { id };
-
-    if (userData.username !== undefined) variables.username = userData.username;
-    if (userData.realName !== undefined) variables.realName = userData.realName;
-    if (userData.email !== undefined) variables.email = userData.email;
-    if (userData.phone !== undefined) variables.phone = userData.phone;
-    if (userData.role !== undefined) variables.role = userData.role;
-    if (userData.status !== undefined) variables.status = userData.status;
-    if (userData.password !== undefined) variables.password = userData.password;
     const { data } = await client.mutate({
       mutation: gql(UPDATE_USER),
-      variables,
-      fetchPolicy: 'network-only'
+      variables:{id,...userData},
     });
     return data.updateUser;
   },
@@ -90,9 +78,7 @@ const userService = {
     const { data } = await client.mutate({
       mutation: gql(DELETE_USER),
       variables: { id },
-      fetchPolicy: 'network-only'
     });
-
     return data?.deleteUser || false;
   },
 
@@ -101,7 +87,6 @@ const userService = {
     const { data } = await client.mutate({
       mutation: gql(UPDATE_USER_STATUS),
       variables: { id, status },
-      fetchPolicy: 'network-only'
     });
     return data?.updateUserStatus || null;
   },

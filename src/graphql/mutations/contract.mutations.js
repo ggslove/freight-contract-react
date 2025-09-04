@@ -9,7 +9,6 @@ export const CONTRACT_MUTATIONS = {
       $billNo: String
       $salesman: String
       $amount: Float!
-      $currency: String!
       $status: ContractStatus!
       $contractDate: DateTime
       $deliveryDate: DateTime
@@ -21,7 +20,6 @@ export const CONTRACT_MUTATIONS = {
         billNo: $billNo
         salesman: $salesman
         amount: $amount
-        currency: $currency
         status: $status
         contractDate: $contractDate
         deliveryDate: $deliveryDate
@@ -33,7 +31,6 @@ export const CONTRACT_MUTATIONS = {
         billNo
         salesman
         amount
-        currency
         status
         contractDate
         deliveryDate
@@ -53,7 +50,6 @@ export const CONTRACT_MUTATIONS = {
       $billNo: String
       $salesman: String
       $amount: Float
-      $currency: String
       $status: ContractStatus
       $contractDate: DateTime
       $deliveryDate: DateTime
@@ -66,7 +62,6 @@ export const CONTRACT_MUTATIONS = {
         billNo: $billNo
         salesman: $salesman
         amount: $amount
-        currency: $currency
         status: $status
         contractDate: $contractDate
         deliveryDate: $deliveryDate
@@ -78,7 +73,6 @@ export const CONTRACT_MUTATIONS = {
         billNo
         salesman
         amount
-        currency
         status
         contractDate
         deliveryDate
@@ -102,7 +96,7 @@ export const CONTRACT_MUTATIONS = {
       $contractId: ID!
       $customerName: String!
       $amount: Float!
-      $currency: String!
+      $currencyCode: String!
       $dueDate: DateTime
       $status: ReceivableStatus!
     ) {
@@ -110,14 +104,18 @@ export const CONTRACT_MUTATIONS = {
         contractId: $contractId
         customerName: $customerName
         amount: $amount
-        currency: $currency
+        currencyCode: $currencyCode
         dueDate: $dueDate
         status: $status
       ) {
         id
         customerName
         amount
-        currency
+        currency {
+          code
+          name
+          symbol
+        }
         dueDate
         status
         createdAt
@@ -132,7 +130,7 @@ export const CONTRACT_MUTATIONS = {
       $id: ID!
       $customerName: String
       $amount: Float
-      $currency: String
+      $currencyCode: String
       $dueDate: DateTime
       $status: ReceivableStatus
     ) {
@@ -140,14 +138,18 @@ export const CONTRACT_MUTATIONS = {
         id: $id
         customerName: $customerName
         amount: $amount
-        currency: $currency
+        currencyCode: $currencyCode
         dueDate: $dueDate
         status: $status
       ) {
         id
         customerName
         amount
-        currency
+        currency {
+          code
+          name
+          symbol
+        }
         dueDate
         status
         createdAt
@@ -169,7 +171,7 @@ export const CONTRACT_MUTATIONS = {
       $contractId: ID!
       $supplierName: String!
       $amount: Float!
-      $currency: String!
+      $currencyCode: String!
       $dueDate: DateTime
       $status: PayableStatus!
     ) {
@@ -177,14 +179,18 @@ export const CONTRACT_MUTATIONS = {
         contractId: $contractId
         supplierName: $supplierName
         amount: $amount
-        currency: $currency
+        currencyCode: $currencyCode
         dueDate: $dueDate
         status: $status
       ) {
         id
         supplierName
         amount
-        currency
+        currency {
+          code
+          name
+          symbol
+        }
         dueDate
         status
         createdAt
@@ -199,7 +205,7 @@ export const CONTRACT_MUTATIONS = {
       $id: ID!
       $supplierName: String
       $amount: Float
-      $currency: String
+      $currencyCode: String
       $dueDate: DateTime
       $status: PayableStatus
     ) {
@@ -207,14 +213,18 @@ export const CONTRACT_MUTATIONS = {
         id: $id
         supplierName: $supplierName
         amount: $amount
-        currency: $currency
+        currencyCode: $currencyCode
         dueDate: $dueDate
         status: $status
       ) {
         id
         supplierName
         amount
-        currency
+        currency {
+          code
+          name
+          symbol
+        }
         dueDate
         status
         createdAt

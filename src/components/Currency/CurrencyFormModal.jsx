@@ -152,7 +152,10 @@ const CurrencyFormModal = ({
             {t('common.cancel')}
           </button>
           <button
-            onClick={onSubmit}
+            onClick={(e) => {
+              e.preventDefault();
+              onSubmit(formData);
+            }}
             style={{
               padding: '0.5rem 1rem',
               backgroundColor: '#1890ff',

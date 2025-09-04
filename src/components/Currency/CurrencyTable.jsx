@@ -1,7 +1,21 @@
 import React from 'react';
 import { t } from '../../utils/i18n';
 
-const CurrencyTable = ({ currencies, onEdit, onDelete, onToggleStatus }) => {
+const CurrencyTable = ({ currencies, onEdit, onDelete, onToggleStatus, loading }) => {
+  if (loading) {
+    return (
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '0.5rem',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        padding: '2rem',
+        textAlign: 'center'
+      }}>
+        加载中...
+      </div>
+    );
+  }
+
   return (
     <div style={{
       backgroundColor: 'white',
@@ -15,6 +29,7 @@ const CurrencyTable = ({ currencies, onEdit, onDelete, onToggleStatus }) => {
             <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '500' }}>币种代码</th>
             <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '500' }}>币种名称</th>
             <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '500' }}>符号</th>
+            <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '500' }}>汇率</th>
             <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '500' }}>状态</th>
             <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '500' }}>操作</th>
           </tr>
@@ -25,6 +40,7 @@ const CurrencyTable = ({ currencies, onEdit, onDelete, onToggleStatus }) => {
               <td style={{ padding: '1rem', fontWeight: '500' }}>{currency.code}</td>
               <td style={{ padding: '1rem' }}>{currency.name}</td>
               <td style={{ padding: '1rem', fontWeight: '600' }}>{currency.symbol}</td>
+              <td style={{ padding: '1rem' }}>{currency.exchangeRate.toFixed(4)}</td>
               <td style={{ padding: '1rem' }}>
                 <span style={{
                   padding: '0.25rem 0.5rem',
@@ -39,7 +55,7 @@ const CurrencyTable = ({ currencies, onEdit, onDelete, onToggleStatus }) => {
               <td style={{ padding: '1rem' }}>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button
-                    onClick={() => onToggleStatus(currency.id)}
+                    onClick={() => onToggleStatus(currency)}
                     style={{
                       padding: '0.375rem 0.75rem',
                       border: 'none',

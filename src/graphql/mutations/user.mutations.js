@@ -35,15 +35,17 @@ export const USER_MUTATIONS = {
     }
   `,
 
+  
+  
   // 更新用户
   UPDATE_USER: `
     mutation UpdateUser(
       $id: ID!
-      $username: String
+      $username: String!
       $realName: String
-      $email: String
+      $email: String!
       $phone: String
-      $password: String
+      $status: UserStatus!
     ) {
       updateUser(
         id: $id
@@ -51,13 +53,14 @@ export const USER_MUTATIONS = {
         realName: $realName
         email: $email
         phone: $phone
-        password: $password
+        status: $status
       ) {
         id
         username
         realName
         email
         phone
+        status
         lastLogin
         createdAt
         updatedAt

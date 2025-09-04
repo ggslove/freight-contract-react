@@ -68,10 +68,11 @@ const userService = {
   async updateUser(id, userData) {
     const { data } = await client.mutate({
       mutation: gql(UPDATE_USER),
-      variables:{id,...userData},
+      variables:{ id, ...userData }
     });
     return data.updateUser;
   },
+
 
   // 删除用户
   async deleteUser(id) {

@@ -8,7 +8,11 @@ export const PAYABLE_QUERIES = {
         id
         supplierName
         amount
-        currency
+        currency {
+          code
+          name
+          symbol
+        }
         status
         dueDate
         contract {
@@ -27,7 +31,11 @@ export const PAYABLE_QUERIES = {
         id
         supplierName
         amount
-        currency
+        currency {
+          code
+          name
+          symbol
+        }
         status
         dueDate
         contract {
@@ -46,7 +54,11 @@ export const PAYABLE_QUERIES = {
         id
         supplierName
         amount
-        currency
+        currency {
+          code
+          name
+          symbol
+        }
         status
         dueDate
       }
@@ -60,7 +72,11 @@ export const PAYABLE_QUERIES = {
         id
         supplierName
         amount
-        currency
+        currency {
+          code
+          name
+          symbol
+        }
         status
         dueDate
         contract {

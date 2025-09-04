@@ -8,7 +8,11 @@ export const RECEIVABLE_QUERIES = {
         id
         customerName
         amount
-        currency
+        currency {
+          code
+          name
+          symbol
+        }
         status
         dueDate
         contract {
@@ -27,7 +31,7 @@ export const RECEIVABLE_QUERIES = {
         id
         customerName
         amount
-        currency
+        currency {\n          code\n          name\n          symbol\n        }
         status
         dueDate
         contract {
@@ -46,7 +50,7 @@ export const RECEIVABLE_QUERIES = {
         id
         customerName
         amount
-        currency
+        currency {\n          code\n          name\n          symbol\n        }
         status
         dueDate
       }
@@ -60,7 +64,7 @@ export const RECEIVABLE_QUERIES = {
         id
         customerName
         amount
-        currency
+        currency {\n          code\n          name\n          symbol\n        }
         status
         dueDate
         contract {

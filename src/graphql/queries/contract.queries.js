@@ -11,7 +11,6 @@ export const CONTRACT_QUERIES = {
         billNo
         salesman
         amount
-        currency
         status
         contractDate
         deliveryDate
@@ -32,7 +31,6 @@ export const CONTRACT_QUERIES = {
         billNo
         salesman
         amount
-        currency
         status
         contractDate
         deliveryDate
@@ -41,7 +39,11 @@ export const CONTRACT_QUERIES = {
           id
           customerName
           amount
-          currency
+          currency {
+            code
+            name
+            symbol
+          }
           dueDate
           status
           createdAt
@@ -51,7 +53,11 @@ export const CONTRACT_QUERIES = {
           id
           supplierName
           amount
-          currency
+          currency {
+            code
+            name
+            symbol
+          }
           dueDate
           status
           createdAt
@@ -73,7 +79,7 @@ export const CONTRACT_QUERIES = {
         billNo
         salesman
         amount
-        currency
+       
         status
         contractDate
         deliveryDate
@@ -91,7 +97,7 @@ export const CONTRACT_QUERIES = {
         id
         customerName
         amount
-        currency
+       
         dueDate
         status
         createdAt
@@ -107,7 +113,7 @@ export const CONTRACT_QUERIES = {
         id
         customerName
         amount
-        currency
+       
         dueDate
         status
         createdAt
@@ -123,7 +129,7 @@ export const CONTRACT_QUERIES = {
         id
         customerName
         amount
-        currency
+       
         dueDate
         status
         createdAt
@@ -139,7 +145,7 @@ export const CONTRACT_QUERIES = {
         id
         supplierName
         amount
-        currency
+       
         dueDate
         status
         createdAt
@@ -155,7 +161,7 @@ export const CONTRACT_QUERIES = {
         id
         supplierName
         amount
-        currency
+       
         dueDate
         status
         createdAt
@@ -171,7 +177,6 @@ export const CONTRACT_QUERIES = {
         id
         supplierName
         amount
-        currency
         dueDate
         status
         createdAt

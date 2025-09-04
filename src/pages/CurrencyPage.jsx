@@ -1,63 +1,85 @@
 import React, { useState, useEffect } from 'react';
 import { t } from '../utils/i18n';
+import currencyService from '../services/currencyService';
 import CurrencyStats from '../components/Currency/CurrencyStats';
 import CurrencyTable from '../components/Currency/CurrencyTable';
 import CurrencyFormModal from '../components/Currency/CurrencyFormModal';
 
 const CurrencyPage = () => {
-  const [currencies, setCurrencies] = useState([
-    { id: 1, code: 'CNY', name: '人民币', symbol: '￥', isActive: true },
-    { id: 2, code: 'USD', name: '美元', symbol: '$', isActive: true },
-    { id: 3, code: 'EUR', name: '欧元', symbol: '€', isActive: true },
-    { id: 4, code: 'GBP', name: '英镑', symbol: '£', isActive: false },
-    { id: 5, code: 'JPY', name: '日元', symbol: '¥', isActive: false }
-  ]);
-  const [language, setLanguageState] = useState('zh');
-
+  const [currencies, setCurrencies] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCurrency, setEditingCurrency] = useState(null);
   const [formData, setFormData] = useState({
     code: '',
     name: '',
-    symbol: ''
+    symbol: '',
+    exchangeRate: 1.0,
+    isActive: true
   });
 
-  const handleAddCurrency = () => {
-    if (formData.code && formData.name && formData.symbol) {
-      const newCurrency = {
-        id: Date.now(),
-        ...formData,
-        isActive: true
-      };
-      setCurrencies([...currencies, newCurrency]);
-      setFormData({ code: '', name: '', symbol: '' });
+  const fetchCurrencies = async () => {
+    setLoading(true);
+    try {
+      const data = await currencyService.getAllCurrencies();
+      setCurrencies(data);
+    } catch (error) {
+      alert(t('currency.fetchError'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCurrencies();
+  }, []);
+
+  const handleAddCurrency = async (values) => {
+    try {
+      await currencyService.createCurrency(values);
+      alert(t('currency.createSuccess'));
       setShowAddModal(false);
+      setFormData({ code: '', name: '', symbol: '', exchangeRate: 1.0, isActive: true });
+      fetchCurrencies();
+    } catch (error) {
+      alert(error.message || t('currency.createError'));
     }
   };
 
-  const handleUpdateCurrency = () => {
-    if (editingCurrency) {
-      setCurrencies(currencies.map(currency => 
-        currency.id === editingCurrency.id 
-          ? { ...currency, ...formData }
-          : currency
-      ));
+  const handleUpdateCurrency = async (values) => {
+    if (!editingCurrency) return;
+    
+    try {
+      await currencyService.updateCurrency(editingCurrency.id, values);
+      alert(t('currency.updateSuccess'));
       setEditingCurrency(null);
-      setFormData({ code: '', name: '', symbol: '' });
+      setFormData({ code: '', name: '', symbol: '', exchangeRate: 1.0, isActive: true });
+      fetchCurrencies();
+    } catch (error) {
+      alert(error.message || t('currency.updateError'));
     }
   };
 
-  const handleToggleStatus = (id) => {
-    setCurrencies(currencies.map(currency => 
-      currency.id === id 
-        ? { ...currency, isActive: !currency.isActive }
-        : currency
-    ));
+  const handleToggleStatus = async (currency) => {
+    try {
+      await currencyService.updateCurrency(currency.id, {
+        ...currency,
+        isActive: !currency.isActive
+      });
+      alert(t('currency.statusUpdateSuccess'));
+      fetchCurrencies();
+    } catch (error) {
+      alert(t('currency.statusUpdateError'));
+    }
   };
 
-  const handleDeleteCurrency = (id) => {
-    if (window.confirm('确定要删除这个币种吗？')) {
-      setCurrencies(currencies.filter(currency => currency.id !== id));
+  const handleDeleteCurrency = async (id) => {
+    try {
+      await currencyService.deleteCurrency(id);
+      alert(t('currency.deleteSuccess'));
+      fetchCurrencies();
+    } catch (error) {
+      alert(t('currency.deleteError'));
     }
   };
 
@@ -66,14 +88,16 @@ const CurrencyPage = () => {
     setFormData({
       code: currency.code,
       name: currency.name,
-      symbol: currency.symbol
+      symbol: currency.symbol,
+      exchangeRate: currency.exchangeRate,
+      isActive: currency.isActive
     });
   };
 
   const closeModal = () => {
     setShowAddModal(false);
     setEditingCurrency(null);
-    setFormData({ code: '', name: '', symbol: '' });
+    setFormData({ code: '', name: '', symbol: '', exchangeRate: 1.0, isActive: true });
   };
 
   useEffect(() => {

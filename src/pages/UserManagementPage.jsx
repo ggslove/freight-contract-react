@@ -104,7 +104,8 @@ const UserManagementPage = () => {
     }
   };
 
-  const handleEditUser = async () => {
+  const handleEditUser = async (e) => {
+    e.preventDefault();//这个必须要添加
     try {
       const updatedUser = await userService.updateUser(selectedUser.id, {
         username: formData.username,
@@ -125,7 +126,7 @@ const UserManagementPage = () => {
         alert(t('users.updateUserFailedEmpty') + ': 未能获取更新后的用户数据');
       }
     } catch (error) {
-      console.error('更新用户失败:', error);
+      console.error('更新用户失败11:', error);
       alert(t('users.updateUserFailed') + ': ' + (error.message || '未知错误'));
     }
   };

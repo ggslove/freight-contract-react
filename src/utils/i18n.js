@@ -154,7 +154,12 @@ const translations = {
       confirmDelete: '确定要删除此合同吗？',
       deleteSuccess: '合同删除成功',
       saveSuccess: '合同保存成功',
-      addSuccess: '合同添加成功'
+      addSuccess: '合同添加成功',
+      totalContracts: '合同总数',
+      processingContracts: '处理中合同',
+      completedContracts: '已完成合同',
+      pendingContracts: '待处理合同',
+      contractList: '合同列表'
     },
 
     // 系统管理
@@ -482,7 +487,12 @@ const translations = {
       confirmDelete: 'Are you sure you want to delete this contract?',
       deleteSuccess: 'Contract deleted successfully',
       saveSuccess: 'Contract saved successfully',
-      addSuccess: 'Contract added successfully'
+      addSuccess: 'Contract added successfully',
+      totalContracts: 'Total Contracts',
+      processingContracts: 'Processing Contracts',
+      completedContracts: 'Completed Contracts',
+      pendingContracts: 'Pending Contracts',
+      contractList: 'Contract List'
     },
 
     // System Management

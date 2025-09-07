@@ -14,28 +14,28 @@ const Logo = () => (
   </Link>
 );
 
-// 增强的图标组件
+// 增强的图标组件 - 选中时显示白色
 const DashboardIcon = ({ isActive }) => (
-  <svg className={`w-5 h-5 transition-colors duration-200 ${isActive ? 'text-blue-600' : 'text-gray-500 dark:text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <svg className={`w-5 h-5 transition-colors duration-200 ${isActive ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v0M8 13a2 2 0 012-2h4a2 2 0 012 2v0" />
   </svg>
 );
 
 const ContractsIcon = ({ isActive }) => (
-  <svg className={`w-5 h-5 transition-colors duration-200 ${isActive ? 'text-blue-600' : 'text-gray-500 dark:text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <svg className={`w-5 h-5 transition-colors duration-200 ${isActive ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
   </svg>
 );
 
 const CurrencyIcon = ({ isActive }) => (
-  <svg className={`w-5 h-5 transition-colors duration-200 ${isActive ? 'text-blue-600' : 'text-gray-500 dark:text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <svg className={`w-5 h-5 transition-colors duration-200 ${isActive ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
   </svg>
 );
 
 const SettingsIcon = ({ isActive }) => (
-  <svg className={`w-5 h-5 transition-colors duration-200 ${isActive ? 'text-blue-600' : 'text-gray-500 dark:text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <svg className={`w-5 h-5 transition-colors duration-200 ${isActive ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
   </svg>
@@ -96,7 +96,7 @@ const TrueTailAdminLayout = ({ children }) => {
       children: [
         {
           name: 'contracts',
-          href: '/contracts-management',
+          href: '/contracts',
           label: '合同管理'
         },
         {
@@ -108,6 +108,7 @@ const TrueTailAdminLayout = ({ children }) => {
     },
     {
       name: 'system',
+      href: '/system-management',
       icon: SettingsIcon,
       label: '系统管理',
       children: [
@@ -144,7 +145,11 @@ const TrueTailAdminLayout = ({ children }) => {
   const isMenuActive = (item) => {
     if (item.href && location.pathname === item.href) return true;
     if (item.children) {
-      return item.children.some(child => child.href && location.pathname === child.href);
+      return item.children.some(child => {
+        if (!child.href) return false;
+        const childPath = child.href.split('?')[0];
+        return location.pathname === childPath;
+      });
     }
     return false;
   };
@@ -170,7 +175,7 @@ const TrueTailAdminLayout = ({ children }) => {
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg transform hover:scale-105 transition-transform duration-200">
                   <Ship className="w-6 h-6 text-white" />
                 </div>
-                {!collapsed && (
+                {!collapsed && ( 
                   <div className="space-y-1">
                     <span className="text-xl font-bold text-gray-800 dark:text-white whitespace-nowrap">
                       货运系统
@@ -229,16 +234,14 @@ const TrueTailAdminLayout = ({ children }) => {
                           </>
                         )}
                       </div>
-                      {isActive && !collapsed && (
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-white rounded-l-full"></div>
-                      )}
                     </button>
 
                     {/* 子菜单 - 美化版本 */}
                     {hasChildren && !collapsed && isExpanded && (
                       <div className="ml-4 mt-2 space-y-1">
                         {item.children.map((child) => {
-                          const isChildActive = location.pathname === child.href;
+                          const childPath = child.href.split('?')[0];
+                          const isChildActive = location.pathname === childPath;
                           return (
                             <Link
                               key={child.name}

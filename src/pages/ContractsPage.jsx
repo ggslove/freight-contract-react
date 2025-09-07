@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import ContractHeader from '../components/Contracts/ContractHeader';
-import SearchBar from '../components/Contracts/SearchBar';
+import { t } from '../utils/i18n';
+import contractService from '../services/contractService';
+import StatsCard from '../components/Common/StatsCard';
 import ContractTable from '../components/Contracts/ContractTable';
 import ContractForm from '../components/Contracts/ContractForm';
 import { filterContracts, getInitialFormData, createFormDataFromContract } from '../components/Contracts/contractUtils';
-import { t } from '../utils/i18n';
-import contractService from '../services/contractService';
 
 // 映射后端数据到前端格式
 const mapBackendContractToFrontend = (contract) => ({
@@ -309,48 +308,108 @@ const ContractsPage = () => {
     );
   }
 
+  // 计算统计数据
+  const totalContracts = contracts.length;
+  const processingContracts = contracts.filter(c => c.status === 'PROCESSING').length;
+  const completedContracts = contracts.filter(c => c.status === 'COMPLETED').length;
+  const pendingContracts = contracts.filter(c => c.status === 'PENDING').length;
+
   return (
-    <>
-     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}></h1>
-          <p style={{ color: '#666' }}></p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {t('contracts.title')}
+          </h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            {t('contracts.subtitle')}
+          </p>
+        </div>
+        
+        <button
+          onClick={handleAddNew}
+          className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          {t('contracts.addContract')}
+        </button>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <StatsCard
+          title={t('contracts.totalContracts')}
+          value={totalContracts}
+          icon="📋"
+          change={`${totalContracts}`}
+          trend="neutral"
+        />
+        <StatsCard
+          title={t('contracts.processingContracts')}
+          value={processingContracts}
+          icon="🔄"
+          change={`${processingContracts}`}
+          trend="up"
+        />
+        <StatsCard
+          title={t('contracts.completedContracts')}
+          value={completedContracts}
+          icon="✅"
+          change={`${completedContracts}`}
+          trend="up"
+        />
+        <StatsCard
+          title={t('contracts.pendingContracts')}
+          value={pendingContracts}
+          icon="⏳"
+          change={`${pendingContracts}`}
+          trend="neutral"
+        />
+      </div>
+
+      {/* Search Bar */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder={t('contracts.searchPlaceholder')}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+          />
+          <svg className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
         </div>
       </div>
 
-        <ContractHeader onAddClick={handleAddNew} />
-        <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+      {/* Contract Table */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            {t('contracts.contractList')}
+          </h3>
+        </div>
         <ContractTable 
           contracts={filteredContracts} 
           onEdit={handleEdit} 
           onDelete={handleDelete} 
         />
+      </div>
 
-        <div style={{
-          marginTop: '1rem',
-          padding: '1.5rem 2rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          fontSize: '0.875rem',
-          color: '#6b7280',
-          borderTop: '1px solid #e5e7eb'
-        }}>
-          <div>
-            显示 {filteredContracts.length} 条，共 {contracts.length} 条
-          </div>
-        </div>
-
-      {showModal && (
-        <ContractForm
-          formData={formData}
-          onFormChange={handleFormChange}
-          onSubmit={handleSubmit}
-          onClose={handleCloseModal}
-          isEditing={!!editingContract}
-        />
-      )}
-    </>
+      {/* Contract Form Modal */}
+      <ContractForm
+        formData={formData}
+        onFormChange={handleFormChange}
+        onSubmit={handleSubmit}
+        onClose={handleCloseModal}
+        isEditing={!!editingContract}
+        showModal={showModal}
+      />
+    </div>
   );
 };
 

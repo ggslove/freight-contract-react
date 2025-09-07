@@ -135,57 +135,61 @@ const RoleManagementPage = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-        <div>加载中...</div>
+      <div className="flex justify-center items-center h-96">
+        <div className="text-lg text-gray-600 dark:text-gray-400">加载中...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ padding: '2rem', color: '#ff4d4f', textAlign: 'center' }}>
+      <div className="p-8 text-red-500 text-center">
         {error}
       </div>
     );
   }
 
   return (
-    <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>{t('system.roleManagement')}</h1>
-          <p style={{ color: '#666' }}>{t('system.roleManagementDesc')}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {t('system.roleManagement')}
+          </h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            {t('system.roleManagementDesc')}
+          </p>
         </div>
+        
         <button
           onClick={() => setShowAddModal(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#1890ff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '0.5rem',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontWeight: '500'
-          }}
+          className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
         >
-          <Plus size={16} />
+          <Plus size={16} className="mr-2" />
           {t('system.addRole')}
         </button>
       </div>
 
+      {/* Stats Cards */}
       <RoleStats roles={roles} />
 
-      <RoleTable
-        roles={roles}
-        onEdit={openEditModal}
-        onDelete={handleDeleteRole}
-        formatDate={(dateString) => new Date(dateString).toLocaleString('zh-CN')}
-      />
+      {/* Role Table */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            {t('system.roleList')}
+          </h3>
+        </div>
+        <RoleTable
+          roles={roles}
+          onEdit={openEditModal}
+          onDelete={handleDeleteRole}
+          formatDate={(dateString) => new Date(dateString).toLocaleString('zh-CN')}
+        />
+      </div>
 
+      {/* Role Form Modal */}
       <RoleFormModal
         isOpen={showAddModal}
         onClose={() => {
@@ -214,7 +218,7 @@ const RoleManagementPage = () => {
         togglePermission={togglePermission}
         isEditMode={true}
       />
-    </>
+    </div>
   );
 };
 

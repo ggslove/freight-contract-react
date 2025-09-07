@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { t } from '../../utils/i18n';
 
-const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing }) => {
+const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, showModal }) => {
   const [itemType, setItemType] = useState('receivable');
   const [itemName, setItemName] = useState('');
   const [itemCurrency, setItemCurrency] = useState('CNY');
@@ -70,6 +70,8 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing }) 
     
     return `${symbol}${parseFloat(amount).toFixed(2)}`;
   };
+
+  if (!showModal) return null;
 
   return (
     <div style={{

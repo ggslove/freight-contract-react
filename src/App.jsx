@@ -4,9 +4,12 @@ import TrueTailAdminLayout from './components/Layout/TrueTailAdminLayout';
 import LanguageWrapper from './components/LanguageWrapper';
 import TrueDashboardPage from './pages/TrueDashboardPage';
 import ContractManagementPage from './pages/ContractManagementPage';
+import ContractsPage from './pages/ContractsPage';
 import CurrencyPage from './pages/CurrencyPage';
 import AboutPage from './pages/AboutPage';
 import SystemManagementPage from './pages/SystemManagementPage';
+import UserManagementPage from './pages/UserManagementPage';
+import RoleManagementPage from './pages/RoleManagementPage';
 import LoginPage from './pages/LoginPage';
 import authService from './services/authService';
 import './App.css';
@@ -59,6 +62,13 @@ function App() {
               </TrueTailAdminLayout>
             </ProtectedRoute>
           } />
+          <Route path="/contracts" element={
+            <ProtectedRoute>
+              <TrueTailAdminLayout>
+                <ContractsPage />
+              </TrueTailAdminLayout>
+            </ProtectedRoute>
+          } />
           <Route path="/currencies" element={
             <ProtectedRoute>
               <TrueTailAdminLayout>
@@ -77,6 +87,20 @@ function App() {
             <ProtectedRoute>
               <TrueTailAdminLayout>
                 <SystemManagementPage />
+              </TrueTailAdminLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/users" element={
+            <ProtectedRoute>
+              <TrueTailAdminLayout>
+                <UserManagementPage />
+              </TrueTailAdminLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/roles" element={
+            <ProtectedRoute>
+              <TrueTailAdminLayout>
+                <RoleManagementPage />
               </TrueTailAdminLayout>
             </ProtectedRoute>
           } />

@@ -1,11 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings, User, Shield } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { t } from '../utils/i18n';
 import UserManagementPage from './UserManagementPage';
 import RoleManagementPage from './RoleManagementPage';
 
 const SystemManagementPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('users');
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const tab = searchParams.get('tab');
+    if (tab && ['users', 'roles'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [location.search]);
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    navigate(`/system-management?tab=${tab}`);
+  };
 
   const tabs = [
     {
@@ -45,7 +61,7 @@ const SystemManagementPage = () => {
               return (
                 <button
                   key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
+                  onClick={() => handleTabChange(tab.key)}
                   className={`
                     relative flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200
                     ${activeTab === tab.key

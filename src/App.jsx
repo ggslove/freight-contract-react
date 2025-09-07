@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from './components/Layout/Layout';
+import TrueTailAdminLayout from './components/Layout/TrueTailAdminLayout';
 import LanguageWrapper from './components/LanguageWrapper';
-import DashboardPage from './pages/DashboardPage';
+import TrueDashboardPage from './pages/TrueDashboardPage';
 import ContractManagementPage from './pages/ContractManagementPage';
+import CurrencyPage from './pages/CurrencyPage';
 import AboutPage from './pages/AboutPage';
 import SystemManagementPage from './pages/SystemManagementPage';
 import LoginPage from './pages/LoginPage';
@@ -46,30 +47,37 @@ function App() {
           } />
           <Route path="/" element={
             <ProtectedRoute>
-              <Layout>
-                <DashboardPage />
-              </Layout>
+              <TrueTailAdminLayout>
+                <TrueDashboardPage />
+              </TrueTailAdminLayout>
             </ProtectedRoute>
           } />
           <Route path="/contracts-management" element={
             <ProtectedRoute>
-              <Layout>
+              <TrueTailAdminLayout>
                 <ContractManagementPage />
-              </Layout>
+              </TrueTailAdminLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/currencies" element={
+            <ProtectedRoute>
+              <TrueTailAdminLayout>
+                <CurrencyPage />
+              </TrueTailAdminLayout>
             </ProtectedRoute>
           } />
           <Route path="/about" element={
             <ProtectedRoute>
-              <Layout>
+              <TrueTailAdminLayout>
                 <AboutPage />
-              </Layout>
+              </TrueTailAdminLayout>
             </ProtectedRoute>
           } />
           <Route path="/system-management" element={
             <ProtectedRoute>
-              <Layout>
+              <TrueTailAdminLayout>
                 <SystemManagementPage />
-              </Layout>
+              </TrueTailAdminLayout>
             </ProtectedRoute>
           } />
           

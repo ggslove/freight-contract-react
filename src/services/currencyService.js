@@ -3,7 +3,7 @@ import { gql } from '@apollo/client/core';
 import {CURRENCY_QUERIES} from '../graphql/queries/currency.queries';
 import {CURRENCY_MUTATIONS} from '../graphql/mutations/currency.mutations';
 const  {
-  GET_CURRENCIES,
+  GET_ALL_CURRENCIES,
   GET_ACTIVE_CURRENCIES,
   GET_CURRENCY_BY_ID,
   GET_CURRENCY_BY_CODE
@@ -18,7 +18,7 @@ const  {
   // 查询所有币种
   async getAllCurrencies() {
     const { data } = await client.query({
-      query: gql(GET_CURRENCIES),
+      query: gql(GET_ALL_CURRENCIES),
       fetchPolicy: 'network-only'
     });
     return data.currencies;
@@ -58,7 +58,7 @@ const  {
       mutation: gql(CREATE_CURRENCY),
       variables: currencyData,
       refetchQueries: [
-        { query: GET_CURRENCIES },
+        { query: GET_ALL_CURRENCIES },
         { query: GET_ACTIVE_CURRENCIES }
       ]
     });
@@ -71,7 +71,7 @@ const  {
       mutation: gql(UPDATE_CURRENCY),
       variables: { id, ...currencyData },
       refetchQueries: [
-        { query: GET_CURRENCIES },
+        { query: GET_ALL_CURRENCIES },
         { query: GET_ACTIVE_CURRENCIES }
       ]
     });

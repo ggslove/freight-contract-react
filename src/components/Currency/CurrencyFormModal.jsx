@@ -1,14 +1,41 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { t } from '../../utils/i18n';
 
 const CurrencyFormModal = ({ 
   isOpen, 
   onClose, 
   onSubmit, 
-  formData, 
-  setFormData, 
-  isEditMode = false
+  isEditMode = false,
+  editingCurrency = null
 }) => {
+  const [formData, setFormData] = useState({
+    code: '',
+    name: '',
+    symbol: '',
+    exchangeRate: 1.0,
+    isActive: true
+  });
+
+  useEffect(() => {
+    if (isEditMode && editingCurrency) {
+      setFormData({
+        code: editingCurrency.code || '',
+        name: editingCurrency.name || '',
+        symbol: editingCurrency.symbol || '',
+        exchangeRate: editingCurrency.exchangeRate || 1.0,
+        isActive: editingCurrency.isActive !== undefined ? editingCurrency.isActive : true
+      });
+    } else {
+      setFormData({
+        code: '',
+        name: '',
+        symbol: '',
+        exchangeRate: 1.0,
+        isActive: true
+      });
+    }
+  }, [isOpen, isEditMode, editingCurrency]);
+
   if (!isOpen) return null;
 
   const handleInputChange = (field, value) => {

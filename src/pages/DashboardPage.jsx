@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { Doughnut, Bar } from 'react-chartjs-2';
-import { FileText, DollarSign, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
 import { t } from '../utils/i18n';
+import StatsCard from '../components/Common/StatsCard';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
@@ -11,51 +11,32 @@ const DashboardPage = () => {
     totalContracts: 0,
     totalReceivables: 0,
     totalPayables: 0,
-    netCashflow: 0
+    netCashflow: 0,
+    pendingContracts: 0,
+    completedContracts: 0
   });
 
-  const [recentContracts, setRecentContracts] = useState([]);
   const [dateRange, setDateRange] = useState({
     startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0]
   });
 
-  // 模拟数据 - 根据日期筛选
-  const fetchData = (startDate, endDate) => {
-    // 模拟根据日期范围筛选数据
-    const mockContracts = [
-      { id: 1, businessNo: 'HT2024001', client: 'ABC国际贸易公司', sailDate: '2024-01-15', receivables: 85000, payables: 68000, status: '已确认' },
-      { id: 2, businessNo: 'HT2024002', client: 'XYZ物流公司', sailDate: '2024-01-20', receivables: 120000, payables: 95000, status: '运输中' },
-      { id: 3, businessNo: 'HT2024003', client: 'DEF供应链', sailDate: '2024-01-25', receivables: 75000, payables: 60000, status: '已完成' },
-      { id: 4, businessNo: 'HT2024004', client: 'GHI货运代理', sailDate: '2024-02-05', receivables: 95000, payables: 78000, status: '已确认' },
-      { id: 5, businessNo: 'HT2024005', client: 'JKL贸易集团', sailDate: '2024-02-10', receivables: 135000, payables: 110000, status: '运输中' },
-    ];
-
-    // 筛选在日期范围内的合同
-    const filteredContracts = mockContracts.filter(contract => {
-      const sailDate = new Date(contract.sailDate);
-      return sailDate >= new Date(startDate) && sailDate <= new Date(endDate);
-    });
-
-    // 计算统计数据
-    const totalContracts = filteredContracts.length;
-    const totalReceivables = filteredContracts.reduce((sum, c) => sum + c.receivables, 0);
-    const totalPayables = filteredContracts.reduce((sum, c) => sum + c.payables, 0);
-    const netCashflow = totalReceivables - totalPayables;
-
-    setStats({
-      totalContracts,
-      totalReceivables,
-      totalPayables,
-      netCashflow
-    });
-
-    setRecentContracts(filteredContracts.slice(0, 5));
-  };
-
   useEffect(() => {
-    fetchData(dateRange.startDate, dateRange.endDate);
+    fetchDashboardData();
   }, [dateRange]);
+
+  const fetchDashboardData = async () => {
+    // 模拟数据
+    const mockData = {
+      totalContracts: 156,
+      totalReceivables: 2850000,
+      totalPayables: 2100000,
+      netCashflow: 750000,
+      pendingContracts: 23,
+      completedContracts: 133
+    };
+    setStats(mockData);
+  };
 
   const handleDateChange = (field, value) => {
     setDateRange(prev => ({
@@ -64,30 +45,32 @@ const DashboardPage = () => {
     }));
   };
 
-  // 币种分布图表数据
+  // 图表数据
   const currencyData = {
-    labels: ['人民币', '美元', '欧元', '英镑'],
+    labels: ['人民币', '美元', '欧元', '英镑', '日元'],
     datasets: [
       {
-        data: [65, 25, 8, 2],
-        backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444'],
+        data: [45, 30, 15, 7, 3],
+        backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'],
+        borderWidth: 0,
       },
     ],
   };
 
-  // 应收应付对比图表数据
-  const receivablesPayablesData = {
+  const monthlyData = {
     labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
     datasets: [
       {
         label: '应收金额',
         data: [280000, 320000, 290000, 350000, 380000, 420000],
         backgroundColor: '#3B82F6',
+        borderRadius: 4,
       },
       {
         label: '应付金额',
         data: [220000, 260000, 240000, 290000, 310000, 340000],
         backgroundColor: '#EF4444',
+        borderRadius: 4,
       },
     ],
   };
@@ -100,337 +83,168 @@ const DashboardPage = () => {
         position: 'top',
       },
     },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value) {
+            return '¥' + (value / 10000) + '万';
+          }
+        }
+      }
+    }
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY' }).format(amount);
+    return new Intl.NumberFormat('zh-CN', { 
+      style: 'currency', 
+      currency: 'CNY',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      {/* 日期筛选器 */}
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: '0.5rem',
-        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-        padding: '1.5rem'
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          flexWrap: 'wrap'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <Calendar style={{ width: '1.25rem', height: '1.25rem', color: '#6b7280' }} />
-          <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>{t('dashboard.startDate')}:</label>
-            <input
-              type="date"
-              value={dateRange.startDate}
-              onChange={(e) => handleDateChange('startDate', e.target.value)}
-              style={{
-                padding: '0.5rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem'
-              }}
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {t('dashboard.title')}
+          </h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            {t('dashboard.subtitle')}
+          </p>
+        </div>
+        
+        {/* Date Range Selector */}
+        <div className="mt-4 sm:mt-0 flex items-center space-x-2">
+          // 更新输入框的focus类名
+          <input
+            type="date"
+            value={dateRange.startDate}
+            onChange={(e) => handleDateChange('startDate', e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:border-transparent focus:outline-hidden"
+          />
+          <span className="text-gray-500 dark:text-gray-400">-</span>
+          <input
+            type="date"
+            value={dateRange.endDate}
+            onChange={(e) => handleDateChange('endDate', e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:border-transparent focus:outline-hidden"
+          />
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatsCard
+          title={t('dashboard.totalContracts')}
+          value={stats.totalContracts}
+          trend={12.5}
+          trendUp={true}
+          icon="📋"
+        />
+        <StatsCard
+          title={t('dashboard.totalReceivables')}
+          value={`¥${formatCurrency(stats.totalReceivables)}`}
+          trend={8.2}
+          trendUp={true}
+          icon="💰"
+        />
+        <StatsCard
+          title={t('dashboard.totalPayables')}
+          value={`¥${formatCurrency(stats.totalPayables)}`}
+          trend={-3.1}
+          trendUp={false}
+          icon="💸"
+        />
+        <StatsCard
+          title={t('dashboard.netProfit')}
+          value={`¥${formatCurrency(stats.netCashflow)}`}
+          trend={15.8}
+          trendUp={true}
+          icon="📈"
+        />
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Monthly Revenue Chart */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            {t('dashboard.monthlyRevenue')}
+          </h3>
+          <div className="h-64">
+            <Bar data={monthlyData} options={chartOptions} />
+          </div>
+        </div>
+
+        {/* Currency Distribution */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            {t('dashboard.currencyDistribution')}
+          </h3>
+          <div className="h-64">
+            <Doughnut 
+              data={currencyData} 
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'bottom',
+                  },
+                },
+              }} 
             />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>{t('dashboard.endDate')}:</label>
-            <input
-              type="date"
-              value={dateRange.endDate}
-              onChange={(e) => handleDateChange('endDate', e.target.value)}
-              style={{
-                padding: '0.5rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem'
-              }}
-            />
-          </div>
-          <button
-            onClick={() => {
-              const today = new Date();
-              const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-              setDateRange({
-                startDate: monthStart.toISOString().split('T')[0],
-                endDate: today.toISOString().split('T')[0]
-              });
-            }}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#2563eb',
-              color: 'white',
-              border: 'none',
-              borderRadius: '0.375rem',
-              fontSize: '0.875rem',
-              cursor: 'pointer'
-            }}
-          >
-            {t('dashboard.thisMonth')}
-          </button>
-          <button
-            onClick={() => {
-              const today = new Date();
-              const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-              const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
-              setDateRange({
-                startDate: lastMonthStart.toISOString().split('T')[0],
-                endDate: lastMonthEnd.toISOString().split('T')[0]
-              });
-            }}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#6b7280',
-              color: 'white',
-              border: 'none',
-              borderRadius: '0.375rem',
-              fontSize: '0.875rem',
-              cursor: 'pointer'
-            }}
-          >
-            {t('dashboard.lastMonth')}
-          </button>
         </div>
       </div>
 
-      {/* 统计卡片 */}
-      <div>
-        <h2 style={{ 
-          fontSize: '1.5rem', 
-          fontWeight: 'bold', 
-          marginBottom: '1rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem'
-        }}>
-          <TrendingUp style={{ width: '1.5rem', height: '1.5rem', color: '#2563eb' }} />
-          {t('dashboard.overview')} ({dateRange.startDate} {t('common.to')} {dateRange.endDate})
-        </h2>
-        <div className="grid" style={{ 
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: '1rem'
-        }}>
-          <div className="stat-card" style={{
-            backgroundColor: '#eff6ff',
-            borderRadius: '0.5rem',
-            padding: '1rem',
-            borderLeft: '4px solid #2563eb'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>{t('dashboard.totalContracts')}</p>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginTop: '0.25rem', color: '#2563eb' }}>{stats.totalContracts}</h3>
-              </div>
-              <FileText style={{ color: '#2563eb', fontSize: '1.5rem' }} />
-            </div>
-            <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#16a34a' }}>{t('dashboard.dateRange')}</p>
-          </div>
-
-          <div className="stat-card" style={{
-            backgroundColor: '#f0fdf4',
-            borderRadius: '0.5rem',
-            padding: '1rem',
-            borderLeft: '4px solid #16a34a'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>{t('dashboard.totalReceivables')}</p>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginTop: '0.25rem', color: '#16a34a' }}>{formatCurrency(stats.totalReceivables)}</h3>
-              </div>
-              <TrendingUp style={{ color: '#16a34a', fontSize: '1.5rem' }} />
-            </div>
-            <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#16a34a' }}>合同开航日期范围内</p>
-          </div>
-
-          <div className="stat-card" style={{
-            backgroundColor: '#fef2f2',
-            borderRadius: '0.5rem',
-            padding: '1rem',
-            borderLeft: '4px solid #dc2626'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>{t('dashboard.totalPayables')}</p>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginTop: '0.25rem', color: '#dc2626' }}>{formatCurrency(stats.totalPayables)}</h3>
-              </div>
-              <TrendingDown style={{ color: '#dc2626', fontSize: '1.5rem' }} />
-            </div>
-            <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#dc2626' }}>合同开航日期范围内</p>
-          </div>
-
-          <div className="stat-card" style={{
-            backgroundColor: '#faf5ff',
-            borderRadius: '0.5rem',
-            padding: '1rem',
-            borderLeft: '4px solid #9333ea'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>{t('dashboard.netProfit')}</p>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginTop: '0.25rem', color: '#9333ea' }}>{formatCurrency(stats.netCashflow)}</h3>
-              </div>
-              <DollarSign style={{ color: '#9333ea', fontSize: '1.5rem' }} />
-            </div>
-            <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#16a34a' }}>合同开航日期范围内</p>
-          </div>
+      {/* Recent Activity */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            {t('dashboard.recentActivity')}
+          </h3>
         </div>
-      </div>
-
-      {/* 图表区域 */}
-      <div className="grid" style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: '1.5rem'
-      }}>
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '0.5rem',
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-          padding: '1.5rem'
-        }}>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>{t('dashboard.latestContracts')}</h3>
-          <div style={{ height: '16rem' }}>
-            <Doughnut data={currencyData} options={chartOptions} />
+        <div className="p-6">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-4">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  新合同 HT2024006 已创建
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  2小时前
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  应收款 ¥85,000 已到账
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  3小时前
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  合同 HT2024003 状态更新为已完成
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  5小时前
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '0.5rem',
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-          padding: '1.5rem'
-        }}>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>{t('dashboard.receivablesPayables')}</h3>
-          <div style={{ height: '16rem' }}>
-            <Bar data={receivablesPayablesData} options={chartOptions} />
-          </div>
-        </div>
-      </div>
-
-      {/* 最近合同 */}
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: '0.5rem',
-        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-        padding: '1.5rem'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{t('dashboard.recentContracts')}</h3>
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{
-            minWidth: '100%',
-            borderCollapse: 'collapse',
-            borderSpacing: 0,
-            position: 'relative'
-          }}>
-            <thead>
-              <tr>
-                <th style={{
-                  padding: '0.75rem 1rem',
-                  backgroundColor: '#f9fafb',
-                  textAlign: 'left',
-                  fontSize: '0.75rem',
-                  fontWeight: '500',
-                  color: '#6b7280',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em'
-                }}>{t('contracts.contractNumber')}</th>
-                <th style={{
-                  padding: '0.75rem 1rem',
-                  backgroundColor: '#f9fafb',
-                  textAlign: 'left',
-                  fontSize: '0.75rem',
-                  fontWeight: '500',
-                  color: '#6b7280',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em'
-                }}>{t('contracts.customer')}</th>
-                <th style={{
-                  padding: '0.75rem 1rem',
-                  backgroundColor: '#f9fafb',
-                  textAlign: 'left',
-                  fontSize: '0.75rem',
-                  fontWeight: '500',
-                  color: '#6b7280',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em'
-                }}>{t('contracts.departureDate')}</th>
-                <th style={{
-                  padding: '0.75rem 1rem',
-                  backgroundColor: '#f9fafb',
-                  textAlign: 'left',
-                  fontSize: '0.75rem',
-                  fontWeight: '500',
-                  color: '#6b7280',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em'
-                }}>{t('contracts.receivables')}</th>
-                <th style={{
-                  padding: '0.75rem 1rem',
-                  backgroundColor: '#f9fafb',
-                  textAlign: 'left',
-                  fontSize: '0.75rem',
-                  fontWeight: '500',
-                  color: '#6b7280',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em'
-                }}>{t('contracts.payables')}</th>
-                <th style={{
-                  padding: '0.75rem 1rem',
-                  backgroundColor: '#f9fafb',
-                  textAlign: 'left',
-                  fontSize: '0.75rem',
-                  fontWeight: '500',
-                  color: '#6b7280',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  position: 'sticky',
-                  right: 0,
-                  zIndex: 10,
-                  boxShadow: '-2px 0 4px -2px rgba(0, 0, 0, 0.1)'
-                }}>{t('common.status')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentContracts.map((contract) => (
-                <tr key={contract.id} style={{ borderTop: '1px solid #e5e7eb' }}>
-                  <td style={{ padding: '1rem', fontSize: '0.875rem', fontWeight: '500', color: '#111827', whiteSpace: 'nowrap' }}>{contract.businessNo}</td>
-                  <td style={{ padding: '1rem', fontSize: '0.875rem', color: '#111827', whiteSpace: 'nowrap' }}>{contract.client}</td>
-                  <td style={{ padding: '1rem', fontSize: '0.875rem', color: '#6b7280', whiteSpace: 'nowrap' }}>{contract.sailDate}</td>
-                  <td style={{ padding: '1rem', fontSize: '0.875rem', color: '#111827', whiteSpace: 'nowrap' }}>{formatCurrency(contract.receivables)}</td>
-                  <td style={{ padding: '1rem', fontSize: '0.875rem', color: '#111827', whiteSpace: 'nowrap' }}>{formatCurrency(contract.payables)}</td>
-                  <td style={{
-                    padding: '1rem',
-                    whiteSpace: 'nowrap',
-                    position: 'sticky',
-                    right: 0,
-                    backgroundColor: 'white',
-                    zIndex: 5,
-                    boxShadow: '-2px 0 4px -2px rgba(0, 0, 0, 0.1)'
-                  }}>
-                    <span style={{
-                      display: 'inline-flex',
-                      padding: '0.25rem 0.5rem',
-                      fontSize: '0.75rem',
-                      fontWeight: '600',
-                      borderRadius: '9999px',
-                      backgroundColor: contract.status === '已完成' ? '#dcfce7' : 
-                                      contract.status === '运输中' ? '#fef3c7' : '#dbeafe',
-                      color: contract.status === '已完成' ? '#166534' : 
-                             contract.status === '运输中' ? '#92400e' : '#1e40af'
-                    }}>
-                      {contract.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </div>
     </div>

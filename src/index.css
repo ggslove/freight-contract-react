@@ -1,1 +1,22 @@
-@import './styles.css';
+/* index.css - TailwindCSS 集成文件 */
+@import 'tailwindcss';
+
+/* TailAdmin CSS Variables */
+:root {
+  --color-primary: #3c50e0;
+  --color-secondary: #80caee;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #06b6d4;
+}
+
+/* Dark mode variables */
+.dark {
+  --color-primary: #4f46e5;
+  --color-secondary: #043a52;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+  --color-info: #22d3ee;
+}

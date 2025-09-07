@@ -38,69 +38,49 @@ const ContractManagementPage = () => {
   const ActiveComponent = tabs.find(tab => tab.key === activeTab)?.component;
 
   return (
-    <>
-      <div style={{ 
-        backgroundColor: 'white', 
-        borderRadius: '0.5rem',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        overflow: 'hidden'
-      }}>
-        {/* 头部 */}
-        <div style={{
-          backgroundColor: '#1890ff',
-          color: 'white',
-          padding: '1.5rem 2rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem'
-        }}>
-          <FileCheck size={24} />
-          <div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>{t('contractManagement.title')}</h1>
-            <p style={{ margin: 0, opacity: 0.9, fontSize: '0.875rem' }}>{t('contractManagement.subtitle')}</p>
-          </div>
-        </div>
+    <div className="max-w-7xl mx-auto">
+      {/* 页面头部 */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          {t('contractManagement.title')}
+        </h1>
+        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          {t('contractManagement.subtitle')}
+        </p>
+      </div>
 
-        {/* 标签页导航 */}
-        <div style={{
-          borderBottom: '1px solid #f0f0f0',
-          backgroundColor: '#fafafa'
-        }}>
-          <div style={{ display: 'flex' }}>
-            {tabs.map(tab => {
+      {/* 标签页导航 */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="border-b border-gray-200 dark:border-gray-700">
+          <nav className="flex space-x-8 px-6" aria-label="Tabs">
+            {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '1rem 1.5rem',
-                    border: 'none',
-                    backgroundColor: activeTab === tab.key ? 'white' : 'transparent',
-                    color: activeTab === tab.key ? '#1890ff' : '#666',
-                    fontWeight: activeTab === tab.key ? '500' : 'normal',
-                    borderBottom: activeTab === tab.key ? '2px solid #1890ff' : 'none',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
+                  className={`
+                    relative flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200
+                    ${activeTab === tab.key
+                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                    }
+                  `}
                 >
-                  <Icon size={16} />
-                  {tab.label}
+                  <Icon className="w-5 h-5" />
+                  <span>{tab.label}</span>
                 </button>
               );
             })}
-          </div>
+          </nav>
         </div>
 
         {/* 内容区域 */}
-         <div style={{ padding: '2rem' }}>
+        <div className="p-6">
           {ActiveComponent && <ActiveComponent />}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

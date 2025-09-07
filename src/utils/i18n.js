@@ -85,6 +85,36 @@ const translations = {
       currencies: '币种管理'
     },
 
+    // 币种管理
+    currencies: {
+      title: '币种管理',
+      subtitle: '管理系统支持的币种和汇率信息',
+      addCurrency: '添加币种',
+      editCurrency: '编辑币种',
+      currencyCode: '币种代码',
+      currencyName: '币种名称',
+      currencySymbol: '货币符号',
+      exchangeRate: '汇率',
+      isActive: '是否启用',
+      totalCurrencies: '币种总数',
+      activeCurrencies: '启用币种',
+      inactiveCurrencies: '禁用币种',
+      searchPlaceholder: '搜索币种代码或名称...',
+      confirmDelete: '确定要删除此币种吗？',
+      deleteSuccess: '币种删除成功',
+      saveSuccess: '币种保存成功',
+      addSuccess: '币种添加成功',
+      enterCurrencyCode: '请输入币种代码',
+      enterCurrencyName: '请输入币种名称',
+      enterExchangeRate: '请输入汇率',
+      currencyCodePlaceholder: '如：USD, EUR, CNY',
+      currencyNamePlaceholder: '如：美元, 欧元, 人民币',
+      symbolPlaceholder: '如：$, €, ¥',
+      ratePlaceholder: '相对于基准货币的汇率',
+      enableCurrency: '启用币种',
+      disableCurrency: '禁用币种'
+    },
+
     // 合同管理
     contracts: {
       title: '合同管理',

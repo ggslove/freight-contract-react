@@ -79,7 +79,6 @@ export const CONTRACT_QUERIES = {
         billNo
         salesman
         amount
-       
         status
         contractDate
         deliveryDate

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { t } from '../utils/i18n';
 import currencyService from '../services/currencyService';
-import CurrencyStats from '../components/Currency/CurrencyStats';
+import StatsCard from '../components/Common/StatsCard';
 import CurrencyTable from '../components/Currency/CurrencyTable';
 import CurrencyFormModal from '../components/Currency/CurrencyFormModal';
 
@@ -10,13 +10,6 @@ const CurrencyPage = () => {
   const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCurrency, setEditingCurrency] = useState(null);
-  const [formData, setFormData] = useState({
-    code: '',
-    name: '',
-    symbol: '',
-    exchangeRate: 1.0,
-    isActive: true
-  });
 
   const fetchCurrencies = async () => {
     setLoading(true);
@@ -39,7 +32,6 @@ const CurrencyPage = () => {
       await currencyService.createCurrency(values);
       alert(t('currency.createSuccess'));
       setShowAddModal(false);
-      setFormData({ code: '', name: '', symbol: '', exchangeRate: 1.0, isActive: true });
       fetchCurrencies();
     } catch (error) {
       alert(error.message || t('currency.createError'));
@@ -53,7 +45,6 @@ const CurrencyPage = () => {
       await currencyService.updateCurrency(editingCurrency.id, values);
       alert(t('currency.updateSuccess'));
       setEditingCurrency(null);
-      setFormData({ code: '', name: '', symbol: '', exchangeRate: 1.0, isActive: true });
       fetchCurrencies();
     } catch (error) {
       alert(error.message || t('currency.updateError'));
@@ -85,92 +76,91 @@ const CurrencyPage = () => {
 
   const openEditModal = (currency) => {
     setEditingCurrency(currency);
-    setFormData({
-      code: currency.code,
-      name: currency.name,
-      symbol: currency.symbol,
-      exchangeRate: currency.exchangeRate,
-      isActive: currency.isActive
-    });
   };
 
   const closeModal = () => {
     setShowAddModal(false);
     setEditingCurrency(null);
-    setFormData({ code: '', name: '', symbol: '', exchangeRate: 1.0, isActive: true });
   };
 
-  useEffect(() => {
-    const handleLanguageChange = (event) => {
-      setLanguageState(event.detail);
-    };
-
-    window.addEventListener('languageChanged', handleLanguageChange);
-    return () => {
-      window.removeEventListener('languageChanged', handleLanguageChange);
-    };
-  }, []);
+  // 计算统计数据
+  const activeCurrencies = currencies.filter(c => c.isActive).length;
+  const totalCurrencies = currencies.length;
+  const cnyCurrencies = currencies.filter(c => c.code === 'CNY').length;
 
   return (
-    <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>{t('currencies.title')}</h1>
-          <p style={{ color: '#666' }}>{t('currencies.subtitle')}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {t('currencies.title')}
+          </h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            {t('currencies.subtitle')}
+          </p>
         </div>
-    
+        
         <button
           onClick={() => setShowAddModal(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            backgroundColor: '#1890ff',
-            color: 'white',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '0.375rem',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontWeight: '500',
-            transition: 'all 0.2s ease',
-            boxShadow: '0 2px 4px rgba(24, 144, 255, 0.2)'
-          }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#096dd9'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = '#1890ff'}
+          className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
         >
-          <span style={{ fontSize: '16px', lineHeight: '1' }}>+</span>
-            {t('currencies.addCurrency')}
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          {t('currencies.addCurrency')}
         </button>
       </div>
 
-      <CurrencyStats currencies={currencies} />
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatsCard
+          title={t('currencies.totalCurrencies')}
+          value={totalCurrencies}
+          icon="💱"
+          change="+2"
+          trend="up"
+        />
+        <StatsCard
+          title={t('currencies.activeCurrencies')}
+          value={activeCurrencies}
+          icon="✅"
+          change="+1"
+          trend="up"
+        />
+        <StatsCard
+          title={t('currencies.cnyCount')}
+          value={cnyCurrencies}
+          icon="🇨🇳"
+          change="0"
+          trend="neutral"
+        />
+      </div>
 
-      <CurrencyTable
-        currencies={currencies}
-        onToggleStatus={handleToggleStatus}
-        onEdit={openEditModal}
-        onDelete={handleDeleteCurrency}
-      />
+      {/* Currency Table */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            {t('currencies.currencyList')}
+          </h3>
+        </div>
+        <CurrencyTable
+          currencies={currencies}
+          onToggleStatus={handleToggleStatus}
+          onEdit={openEditModal}
+          onDelete={handleDeleteCurrency}
+        />
+      </div>
 
+      {/* Currency Form Modal */}
       <CurrencyFormModal
-        isOpen={showAddModal}
+        isOpen={showAddModal || !!editingCurrency}
         onClose={closeModal}
-        onSubmit={handleAddCurrency}
-        formData={formData}
-        setFormData={setFormData}
-        isEditMode={false}
+        onSubmit={editingCurrency ? handleUpdateCurrency : handleAddCurrency}
+        isEditMode={!!editingCurrency}
+        editingCurrency={editingCurrency}
       />
-
-      <CurrencyFormModal
-        isOpen={!!editingCurrency}
-        onClose={closeModal}
-        onSubmit={handleUpdateCurrency}
-        formData={formData}
-        setFormData={setFormData}
-        isEditMode={true}
-      />
-    </>
+    </div>
   );
 };
 

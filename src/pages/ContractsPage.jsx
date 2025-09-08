@@ -153,80 +153,27 @@ const ContractsPage = () => {
           status: editingContract.status || 'PENDING'
         });
       } else {
-        // 使用新的完整合同创建方法
-        const totalReceivableAmount = formData.receivableItems?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0;
-        const totalPayableAmount = formData.payableItems?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0;
-        
-        // 准备应收数据
-        const receivableData = formData.receivableItems?.[0] || {
-          customerName: formData.client || '未知客户',
-          amount: totalReceivableAmount,
-          currencyCode: formData.currency || 'CNY',
+        // 使用后端级联保存功能，一次性创建合同及其关联的应收应付记录
+        const receivableInputs = formData.receivableItems?.map(item => ({
+          customerName: item.name || '未知客户',
+          amount: item.amount || 0,
+          currencyCode: item.currency || 'CNY',
           status: 'PENDING',
-          dueDate: formatDateForBackend(formData.sailDate)
-        };
+        })) || [];
 
-        // 准备应付数据
-        const payableData = formData.payableItems?.[0] || {
-          supplierName: '未知供应商',
-          amount: totalPayableAmount,
-          currencyCode: formData.currency || 'CNY',
+        const payableInputs = formData.payableItems?.map(item => ({
+          supplierName: item.name || '未知供应商',
+          amount: item.amount || 0,
+          currencyCode: item.currency || 'CNY',
           status: 'PENDING',
-          dueDate: formatDateForBackend(formData.sailDate)
-        };
+        })) || [];
 
-        // 使用新的完整合同创建方法
-        const result = await contractService.createCompleteContract(
-          contractData,
-          receivableData,
-          payableData
-        );
-
-        if (!result.success) {
-          throw new Error(result.error || '创建合同失败');
-        }
-
-        // 如果有多条应收/应付记录，额外创建
-        const additionalPromises = [];
-        
-        // 创建额外的应收记录（跳过第一条，因为已经创建了）
-        if (formData.receivableItems && formData.receivableItems.length > 1) {
-          for (let i = 1; i < formData.receivableItems.length; i++) {
-            const receivable = formData.receivableItems[i];
-            additionalPromises.push(
-              contractService.createReceivable({
-                contractId: result.contract.id,
-                customerName: receivable.name || '未知客户',
-                amount: receivable.amount || 0,
-                currencyCode: receivable.currency || 'CNY',
-                status: 'PENDING',
-                dueDate: formatDateForBackend(formData.sailDate)
-              })
-            );
-          }
-        }
-        
-        // 创建额外的应付记录（跳过第一条，因为已经创建了）
-        if (formData.payableItems && formData.payableItems.length > 1) {
-          for (let i = 1; i < formData.payableItems.length; i++) {
-            const payable = formData.payableItems[i];
-            additionalPromises.push(
-              contractService.createPayable({
-                contractId: result.contract.id,
-                supplierName: payable.name || '未知供应商',
-                amount: payable.amount || 0,
-                currencyCode: payable.currency || 'CNY',
-                status: 'PENDING',
-                dueDate: formatDateForBackend(formData.sailDate)
-              })
-            );
-          }
-        }
-
-        // 等待所有额外的记录创建完成
-        if (additionalPromises.length > 0) {
-          await Promise.all(additionalPromises);
-        }
+        // 使用后端级联保存功能
+        await contractService.createContract({
+          ...contractData,
+          receivableInputs,
+          payableInputs
+        });
       }
       
       await fetchContracts();

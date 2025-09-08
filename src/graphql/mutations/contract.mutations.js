@@ -13,6 +13,8 @@ export const CONTRACT_MUTATIONS = {
       $contractDate: DateTime
       $deliveryDate: DateTime
       $description: String
+      $receivableInputs: [ReceivableInput!]
+      $payableInputs: [PayableInput!]
     ) {
       createContract(
         businessNo: $businessNo
@@ -24,6 +26,8 @@ export const CONTRACT_MUTATIONS = {
         contractDate: $contractDate
         deliveryDate: $deliveryDate
         description: $description
+        receivableInputs: $receivableInputs
+        payableInputs: $payableInputs
       ) {
         id
         businessNo
@@ -35,6 +39,34 @@ export const CONTRACT_MUTATIONS = {
         contractDate
         deliveryDate
         description
+        receivables {
+          id
+          customerName
+          amount
+          currency {
+            code
+            name
+            symbol
+          }
+          dueDate
+          status
+          createdAt
+          updatedAt
+        }
+        payables {
+          id
+          supplierName
+          amount
+          currency {
+            code
+            name
+            symbol
+          }
+          dueDate
+          status
+          createdAt
+          updatedAt
+        }
         createdAt
         updatedAt
       }

@@ -103,7 +103,7 @@ const LoginPage = () => {
             borderRadius: '0.375rem',
             marginBottom: '1rem'
           }}>
-            {error}
+            {typeof error === 'object' ? error.message || error.toString() : error}
           </div>
         )}
 

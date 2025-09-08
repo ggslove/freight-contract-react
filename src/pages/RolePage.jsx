@@ -144,7 +144,7 @@ const RoleManagementPage = () => {
   if (error) {
     return (
       <div className="p-8 text-red-500 text-center">
-        {error}
+        {typeof error === 'object' ? error.message || error.toString() : error}
       </div>
     );
   }

@@ -65,14 +65,6 @@ const ContractTable = ({ contracts, onEdit, onDelete }) => {
               fontWeight: '600',
               fontSize: '0.875rem',
               color: '#374151',
-              minWidth: '120px'
-            }}>{t('contracts.invoiceNumber')}</th>
-            <th style={{
-              padding: '1rem',
-              textAlign: 'left',
-              fontWeight: '600',
-              fontSize: '0.875rem',
-              color: '#374151',
               minWidth: '150px'
             }}>{t('contracts.customer')}</th>
             <th style={{
@@ -82,7 +74,7 @@ const ContractTable = ({ contracts, onEdit, onDelete }) => {
               fontSize: '0.875rem',
               color: '#374151',
               minWidth: '100px'
-            }}>{t('contracts.quantity')}</th>
+            }}>{t('contracts.amount')}</th>
             <th style={{
               padding: '1rem',
               textAlign: 'left',
@@ -106,15 +98,7 @@ const ContractTable = ({ contracts, onEdit, onDelete }) => {
               fontSize: '0.875rem',
               color: '#374151',
               minWidth: '120px'
-            }}>{t('contracts.totalReceivables')}</th>
-            <th style={{
-              padding: '1rem',
-              textAlign: 'left',
-              fontWeight: '600',
-              fontSize: '0.875rem',
-              color: '#374151',
-              minWidth: '120px'
-            }}>{t('contracts.totalPayables')}</th>
+            }}>{t('contracts.invoiceNo')}</th>
             <th style={{
               padding: '1rem',
               textAlign: 'center',
@@ -133,7 +117,7 @@ const ContractTable = ({ contracts, onEdit, onDelete }) => {
         <tbody>
           {contracts.length === 0 ? (
             <tr>
-              <td colSpan="11" style={{
+              <td colSpan="10" style={{
                 padding: '3rem 1rem',
                 textAlign: 'center',
                 color: '#6b7280',
@@ -168,45 +152,33 @@ const ContractTable = ({ contracts, onEdit, onDelete }) => {
                   padding: '1rem', 
                   fontSize: '0.875rem', 
                   color: '#374151' 
-                }}>{contract.blNo}</td>
+                }}>{contract.billNo}</td>
                 <td style={{ 
                   padding: '1rem', 
                   fontSize: '0.875rem', 
                   color: '#374151' 
-                }}>{contract.invNo}</td>
-                <td style={{ 
-                  padding: '1rem', 
-                  fontSize: '0.875rem', 
-                  color: '#374151' 
-                }}>{contract.client}</td>
+                }}>{contract.theClient}</td>
                 <td style={{ 
                   padding: '1rem', 
                   fontSize: '0.875rem', 
                   color: '#374151',
                   fontWeight: '500'
-                }}>{contract.quantity}</td>
+                }}>{contract.quantity || '0.00'}</td>
                 <td style={{ 
                   padding: '1rem', 
                   fontSize: '0.875rem', 
                   color: '#6b7280' 
-                }}>{contract.receiptDate}</td>
+                }}>{contract.dateOfReceipt}</td>
                 <td style={{ 
                   padding: '1rem', 
                   fontSize: '0.875rem', 
                   color: '#6b7280' 
-                }}>{contract.sailDate}</td>
+                }}>{contract.dateOfSailing}</td>
                 <td style={{ 
                   padding: '1rem', 
                   fontSize: '0.875rem', 
-                  color: '#16a34a',
-                  fontWeight: '500'
-                }}>{formatCurrency(contract.receivables?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0)}</td>
-                <td style={{ 
-                  padding: '1rem', 
-                  fontSize: '0.875rem', 
-                  color: '#dc2626',
-                  fontWeight: '500'
-                }}>{formatCurrency(contract.payables?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0)}</td>
+                  color: '#6b7280' 
+                }}>{contract.invoiceNo || '-'}</td>
                 <td style={{ 
                   padding: '1rem',
                   textAlign: 'center',

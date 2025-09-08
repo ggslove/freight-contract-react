@@ -5,24 +5,28 @@ export const RECEIVABLE_MUTATIONS = {
   CREATE_RECEIVABLE: `
     mutation CreateReceivable(
       $contractId: ID!
-      $customerName: String!
-      $amount: Float!
-      $currency: String!
+      $financeItem: String!
+      $amount: String!
+      $currencyCode: String!
       $dueDate: DateTime
-      $status: ReceivableStatus!
+      $status: ContractStatus!
     ) {
       createReceivable(
         contractId: $contractId
-        customerName: $customerName
+        financeItem: $financeItem
         amount: $amount
-        currency: $currency
+        currencyCode: $currencyCode
         dueDate: $dueDate
         status: $status
       ) {
         id
-        customerName
+        financeItem
         amount
-        currency
+        currency {
+          code
+          name
+          symbol
+        }
         dueDate
         status
       }
@@ -33,24 +37,28 @@ export const RECEIVABLE_MUTATIONS = {
   UPDATE_RECEIVABLE: `
     mutation UpdateReceivable(
       $id: ID!
-      $customerName: String
-      $amount: Float
-      $currency: String
+      $financeItem: String
+      $amount: String
+      $currencyCode: String
       $dueDate: DateTime
-      $status: ReceivableStatus
+      $status: ContractStatus
     ) {
       updateReceivable(
         id: $id
-        customerName: $customerName
+        financeItem: $financeItem
         amount: $amount
-        currency: $currency
+        currencyCode: $currencyCode
         dueDate: $dueDate
         status: $status
       ) {
         id
-        customerName
+        financeItem
         amount
-        currency
+        currency {
+          code
+          name
+          symbol
+        }
         dueDate
         status
       }

@@ -4,40 +4,10 @@ import contractService from '../services/contractService';
 import StatsCard from '../components/Common/StatsCard';
 import ContractTable from '../components/Contracts/ContractTable';
 import ContractForm from '../components/Contracts/ContractForm';
-import { filterContracts, getInitialFormData, createFormDataFromContract } from '../components/Contracts/contractUtils';
+import { filterContracts, getInitialFormData } from '../components/Contracts/contractUtils';
+import ErrorBoundary from '../components/ErrorBoundary';
 
-// 映射后端数据到前端格式
-const mapBackendContractToFrontend = (contract) => ({
-  id: contract.id,
-  businessNo: contract.businessNo,
-  salesman: contract.salesman || '',
-  blNo: contract.billNo || '',
-  invNo: '', // 后端没有发票号字段
-  client: contract.customerName,
-  quantity: contract.description || '',
-  receiptDate: contract.contractDate ? new Date(contract.contractDate).toISOString().split('T')[0] : '',
-  sailDate: contract.deliveryDate ? new Date(contract.deliveryDate).toISOString().split('T')[0] : '',
-  currency: contract.currency,
-  status: contract.status,
-  // 保持原始数据结构用于编辑
-  receivables: contract.receivables || [],
-  payables: contract.payables || [],
-  // 同时提供前端格式
-  receivableItems: contract.receivables?.map(r => ({
-    id: r.id,
-    name: r.customerName,
-    currency: r.currency,
-    amount: r.amount,
-    status: r.status
-  })) || [],
-  payableItems: contract.payables?.map(p => ({
-    id: p.id,
-    name: p.supplierName,
-    currency: p.currency,
-    amount: p.amount,
-    status: p.status
-  })) || []
-});
+
 
 const ContractsPage = () => {
   const [contracts, setContracts] = useState([]);
@@ -55,8 +25,8 @@ const ContractsPage = () => {
       setLoading(true);
       setError(null);
       const contracts = await contractService.getAllContracts();
-      const mappedContracts = contracts.map(mapBackendContractToFrontend);
-      setContracts(mappedContracts);
+      // 直接使用后端的合同数据，无需映射转换
+      setContracts(contracts);
     } catch (err) {
       console.error('获取合同列表失败:', err);
       setError(err.message);
@@ -66,21 +36,21 @@ const ContractsPage = () => {
           id: 1,
           businessNo: 'HT2024001',
           salesman: '张三',
-          blNo: 'BL123456789',
-          invNo: 'INV2024001',
-          client: 'ABC国际贸易公司',
-          quantity: '100',
-          receiptDate: '2024-01-10',
-          sailDate: '2024-01-15',
-          currency: 'CNY',
-          status: 'PROCESSING',
-          receivableItems: [
-            { id: 1, name: '海运费', currency: 'CNY', amount: 5000 },
-            { id: 2, name: '港口费', currency: 'CNY', amount: 1500 }
+          billNo: 'BL123456789',
+          theClient: 'ABC国际贸易公司',
+          quantity: '6500.00',
+          status: 'PENDING',
+          dateOfReceipt: '2024-01-10',
+          dateOfSailing: '2024-01-15',
+          invoiceNo: 'INV2024001',
+          remarks: '首次合作合同',
+          receivables: [
+            { id: 1, financeItem: '海运费', currencyCode: 'CNY', amount: 5000, status: 'PENDING' },
+            { id: 2, financeItem: '港口费', currencyCode: 'CNY', amount: 1500, status: 'PENDING' }
           ],
-          payableItems: [
-            { id: 1, name: '代理费', currency: 'CNY', amount: 2000 },
-            { id: 2, name: '文件费', currency: 'CNY', amount: 300 }
+          payables: [
+            { id: 1, financeItem: '代理费', currencyCode: 'CNY', amount: 2000, status: 'PENDING' },
+            { id: 2, financeItem: '文件费', currencyCode: 'CNY', amount: 300, status: 'PENDING' }
           ]
         }
       ]);
@@ -109,68 +79,34 @@ const ContractsPage = () => {
     e.preventDefault();
     
     try {
-      // 修复日期格式：处理type="date"输入的YYYY-MM-DD格式
-      const formatDateForBackend = (dateString) => {
-        if (!dateString) return null;
-        
-        // 如果已经是YYYY-MM-DD格式，添加时间部分
-        if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-          return `${dateString}T00:00:00`;
-        }
-        
-        // 如果是其他格式，尝试解析并格式化
-        try {
-          const date = new Date(dateString);
-          if (isNaN(date.getTime())) return null;
-          
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const day = String(date.getDate()).padStart(2, '0');
-          
-          return `${year}-${month}-${day}T00:00:00`;
-        } catch (error) {
-          console.error('日期格式转换失败:', error);
-          return null;
-        }
-      };
+      // 使用解构赋值移除receivableItems和payableItems
+      const { receivables, payables,...contractInput } = formData;
+      
+      // 构建应收应付数据
+      const receivableInputs = receivables?.map(item => ({
+        financeItem: item.financeItem || item.name || '未知客户',
+        amount: item.amount || 0,
+        currencyCode: item.currencyCode || item.currency || 'CNY',
+        status: item.status || 'PENDING',
+      })) || [];
 
-      const contractData = {
-        businessNo: formData.businessNo,
-        customerName: formData.client,
-        billNo: formData.blNo,
-        salesman: formData.salesman,
-        amount: parseFloat(formData.receivableItems?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0),
-        currency: formData.currency,
-        status: 'PENDING',
-        description: formData.quantity,
-        contractDate: formatDateForBackend(formData.receiptDate),
-        deliveryDate: formatDateForBackend(formData.sailDate)
-      };
+      const payableInputs = payables?.map(item => ({
+        financeItem: item.financeItem || item.name || '未知供应商',
+        amount: item.amount || 0,
+        currencyCode: item.currencyCode || item.currency || 'CNY',
+        status: item.status || 'PENDING',
+      })) || [];
 
       if (editingContract) {
+        // 更新合同
         await contractService.updateContract(editingContract.id, {
-          ...contractData,
-          status: editingContract.status || 'PENDING'
+          ...contractInput,
+          status: formData.status || editingContract.status || 'PENDING'
         });
       } else {
-        // 使用后端级联保存功能，一次性创建合同及其关联的应收应付记录
-        const receivableInputs = formData.receivableItems?.map(item => ({
-          customerName: item.name || '未知客户',
-          amount: item.amount || 0,
-          currencyCode: item.currency || 'CNY',
-          status: 'PENDING',
-        })) || [];
-
-        const payableInputs = formData.payableItems?.map(item => ({
-          supplierName: item.name || '未知供应商',
-          amount: item.amount || 0,
-          currencyCode: item.currency || 'CNY',
-          status: 'PENDING',
-        })) || [];
-
-        // 使用后端级联保存功能
+        // 创建新合同
         await contractService.createContract({
-          ...contractData,
+          contractInput,
           receivableInputs,
           payableInputs
         });
@@ -186,33 +122,26 @@ const ContractsPage = () => {
 
   const handleEdit = async (contract) => {
     try {
-      // 直接使用已加载的应收应付数据
-      const contractWithDetails = {
+      // 获取完整的合同详情
+      const contractDetails = await contractService.getContractById(contract.id);
+      const contract = contractDetails.data;
+      
+      setEditingContract(contract);
+      setFormData({
         ...contract,
-        receivableItems: contract.receivables?.map(r => ({
-          id: r.id,
-          name: r.customerName,
-          currency: r.currency,
-          amount: r.amount,
-          status: r.status
-        })) || [],
-        payableItems: contract.payables?.map(p => ({
-          id: p.id,
-          name: p.supplierName,
-          currency: p.currency,
-          amount: p.amount,
-          status: p.status
-        })) || []
-      };
-
-      setEditingContract(contractWithDetails);
-      setFormData(createFormDataFromContract(contractWithDetails));
+        receivables: contract.receivables || [],
+        payables: contract.payables || []
+      });
       setShowModal(true);
     } catch (error) {
       console.error('获取合同详情失败:', error);
       // 如果获取详情失败，仍然打开编辑窗口，但使用基础数据
       setEditingContract(contract);
-      setFormData(createFormDataFromContract(contract));
+      setFormData({
+        ...contract,
+        receivables: [],
+        payables: []
+      });
       setShowModal(true);
     }
   };
@@ -282,7 +211,7 @@ const ContractsPage = () => {
           textAlign: 'center'
         }}>
           <div style={{ color: '#ef4444', marginBottom: '1rem' }}>
-            连接后端失败: {error}
+            连接后端失败: {typeof error === 'object' ? error.message || error.toString() : error}
           </div>
           <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
             正在使用模拟数据...
@@ -294,7 +223,7 @@ const ContractsPage = () => {
 
   // 计算统计数据
   const totalContracts = contracts.length;
-  const processingContracts = contracts.filter(c => c.status === 'PROCESSING').length;
+  const partialContracts = contracts.filter(c => c.status === 'PARTIAL').length;
   const completedContracts = contracts.filter(c => c.status === 'COMPLETED').length;
   const pendingContracts = contracts.filter(c => c.status === 'PENDING').length;
 
@@ -312,7 +241,12 @@ const ContractsPage = () => {
         </div>
         
         <button
-          onClick={handleAddNew}
+          type="button"
+          onClick={() => {
+            setEditingContract(null);
+            setFormData(getInitialFormData());
+            setShowModal(true);
+          }}
           className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -332,11 +266,11 @@ const ContractsPage = () => {
           trend="neutral"
         />
         <StatsCard
-          title={t('contracts.processingContracts')}
-          value={processingContracts}
+          title={t('contracts.partialContracts')}
+          value={partialContracts}
           icon="🔄"
-          change={`${processingContracts}`}
-          trend="up"
+          change={`${partialContracts}`}
+          trend="neutral"
         />
         <StatsCard
           title={t('contracts.completedContracts')}
@@ -385,14 +319,16 @@ const ContractsPage = () => {
       </div>
 
       {/* Contract Form Modal */}
-      <ContractForm
-        formData={formData}
-        onFormChange={handleFormChange}
-        onSubmit={handleSubmit}
-        onClose={handleCloseModal}
-        isEditing={!!editingContract}
-        showModal={showModal}
-      />
+      <ErrorBoundary>
+        <ContractForm
+          formData={formData}
+          onFormChange={handleFormChange}
+          onSubmit={handleSubmit}
+          onClose={handleCloseModal}
+          isEditing={!!editingContract}
+          showModal={showModal}
+        />
+      </ErrorBoundary>
     </div>
   );
 };

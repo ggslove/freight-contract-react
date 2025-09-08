@@ -20,9 +20,9 @@ export const formatCurrency = (amount, currency = 'CNY') => {
 export const formatStatus = (status) => {
   const statusMap = {
     'PENDING': '待处理',
-    'PROCESSING': '进行中',
+    'PARTIAL': '部分完成',
     'COMPLETED': '已完成',
-    'CANCELLED': '已取消'
+    'OVERDUE': '已过期'
   };
   return statusMap[status] || status;
 };

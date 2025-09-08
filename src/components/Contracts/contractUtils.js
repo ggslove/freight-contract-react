@@ -21,7 +21,6 @@ export const filterContracts = (contracts, searchTerm) => {
     contract.businessNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     contract.client?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     contract.blNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contract.invNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     contract.salesman?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 };
@@ -33,29 +32,14 @@ export const calculateTotalAmount = (items = []) => {
 export const getInitialFormData = () => ({
   businessNo: '',
   salesman: '',
-  blNo: '',
-  invNo: '',
-  client: '',
+  billNo: '',
+  theClient: '',
   quantity: '',
-  receiptDate: '',
-  sailDate: '',
-  taxNumber: '',
-  currency: 'CNY', // 添加默认货币字段
-  receivableItems: [],
-  payableItems: []
-});
-
-export const createFormDataFromContract = (contract) => ({
-  businessNo: contract.businessNo || '',
-  salesman: contract.salesman || '',
-  blNo: contract.blNo || '',
-  invNo: contract.invNo || '',
-  client: contract.client || '',
-  quantity: contract.quantity || '',
-  receiptDate: contract.receiptDate || '',
-  sailDate: contract.sailDate || '',
-  taxNumber: contract.taxNumber || '',
-  currency: contract.currency || 'CNY', // 添加货币字段
-  receivableItems: contract.receivableItems || [],
-  payableItems: contract.payableItems || []
+  status: 'PENDING',
+  dateOfReceipt: '',
+  dateOfSailing: '',
+  invoiceNo: '',
+  remarks: '',
+  receivables: [],
+  payables: []
 });

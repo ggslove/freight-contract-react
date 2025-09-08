@@ -4,44 +4,29 @@ export const CONTRACT_MUTATIONS = {
   // 创建合同
   CREATE_CONTRACT: `
     mutation CreateContract(
-      $businessNo: String!
-      $customerName: String!
-      $billNo: String
-      $salesman: String
-      $amount: Float!
-      $status: ContractStatus!
-      $contractDate: DateTime
-      $deliveryDate: DateTime
-      $description: String
+      $contractInput: ContractInput!
       $receivableInputs: [ReceivableInput!]
       $payableInputs: [PayableInput!]
     ) {
       createContract(
-        businessNo: $businessNo
-        customerName: $customerName
-        billNo: $billNo
-        salesman: $salesman
-        amount: $amount
-        status: $status
-        contractDate: $contractDate
-        deliveryDate: $deliveryDate
-        description: $description
+        contractInput: $contractInput
         receivableInputs: $receivableInputs
         payableInputs: $payableInputs
       ) {
         id
         businessNo
-        customerName
         billNo
         salesman
-        amount
+        theClient
+        invoiceNo
+        quantity
         status
-        contractDate
-        deliveryDate
-        description
+        dateOfReceipt
+        dateOfSailing
+        remarks
         receivables {
           id
-          customerName
+          financeItem
           amount
           currency {
             code
@@ -55,7 +40,7 @@ export const CONTRACT_MUTATIONS = {
         }
         payables {
           id
-          supplierName
+          financeItem
           amount
           currency {
             code
@@ -78,37 +63,42 @@ export const CONTRACT_MUTATIONS = {
     mutation UpdateContract(
       $id: ID!
       $businessNo: String
-      $customerName: String
       $billNo: String
       $salesman: String
-      $amount: Float
+      $theClient: String
+      $invoiceNo: String
+      $amount: String
       $status: ContractStatus
-      $contractDate: DateTime
-      $deliveryDate: DateTime
-      $description: String
+      $dateOfReceipt: DateTime
+      $dateOfSailing: DateTime
+      $remarks: String
     ) {
       updateContract(
         id: $id
-        businessNo: $businessNo
-        customerName: $customerName
-        billNo: $billNo
-        salesman: $salesman
-        amount: $amount
-        status: $status
-        contractDate: $contractDate
-        deliveryDate: $deliveryDate
-        description: $description
+        contractInput: {
+          businessNo: $businessNo
+          billNo: $billNo
+          salesman: $salesman
+          theClient: $theClient
+          invoiceNo: $invoiceNo
+          amount: $amount
+          status: $status
+          dateOfReceipt: $dateOfReceipt
+          dateOfSailing: $dateOfSailing
+          remarks: $remarks
+        }
       ) {
         id
         businessNo
-        customerName
         billNo
         salesman
+        theClient
+        invoiceNo
         amount
         status
-        contractDate
-        deliveryDate
-        description
+        dateOfReceipt
+        dateOfSailing
+        remarks
         createdAt
         updatedAt
       }
@@ -126,22 +116,22 @@ export const CONTRACT_MUTATIONS = {
   CREATE_RECEIVABLE: `
     mutation CreateReceivable(
       $contractId: ID!
-      $customerName: String!
-      $amount: Float!
+      $financeItem: String!
+      $amount: String!
       $currencyCode: String!
       $dueDate: DateTime
-      $status: ReceivableStatus!
+      $status: ContractStatus!
     ) {
       createReceivable(
         contractId: $contractId
-        customerName: $customerName
+        financeItem: $financeItem
         amount: $amount
         currencyCode: $currencyCode
         dueDate: $dueDate
         status: $status
       ) {
         id
-        customerName
+        financeItem
         amount
         currency {
           code
@@ -160,22 +150,22 @@ export const CONTRACT_MUTATIONS = {
   UPDATE_RECEIVABLE: `
     mutation UpdateReceivable(
       $id: ID!
-      $customerName: String
-      $amount: Float
+      $financeItem: String
+      $amount: String
       $currencyCode: String
       $dueDate: DateTime
-      $status: ReceivableStatus
+      $status: ContractStatus
     ) {
       updateReceivable(
         id: $id
-        customerName: $customerName
+        financeItem: $financeItem
         amount: $amount
         currencyCode: $currencyCode
         dueDate: $dueDate
         status: $status
       ) {
         id
-        customerName
+        financeItem
         amount
         currency {
           code
@@ -201,22 +191,22 @@ export const CONTRACT_MUTATIONS = {
   CREATE_PAYABLE: `
     mutation CreatePayable(
       $contractId: ID!
-      $supplierName: String!
-      $amount: Float!
+      $financeItem: String!
+      $amount: String!
       $currencyCode: String!
       $dueDate: DateTime
-      $status: PayableStatus!
+      $status: ContractStatus!
     ) {
       createPayable(
         contractId: $contractId
-        supplierName: $supplierName
+        financeItem: $financeItem
         amount: $amount
         currencyCode: $currencyCode
         dueDate: $dueDate
         status: $status
       ) {
         id
-        supplierName
+        financeItem
         amount
         currency {
           code
@@ -235,22 +225,22 @@ export const CONTRACT_MUTATIONS = {
   UPDATE_PAYABLE: `
     mutation UpdatePayable(
       $id: ID!
-      $supplierName: String
-      $amount: Float
+      $financeItem: String
+      $amount: String
       $currencyCode: String
       $dueDate: DateTime
-      $status: PayableStatus
+      $status: ContractStatus
     ) {
       updatePayable(
         id: $id
-        supplierName: $supplierName
+        financeItem: $financeItem
         amount: $amount
         currencyCode: $currencyCode
         dueDate: $dueDate
         status: $status
       ) {
         id
-        supplierName
+        financeItem
         amount
         currency {
           code

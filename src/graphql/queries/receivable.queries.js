@@ -6,7 +6,7 @@ export const RECEIVABLE_QUERIES = {
     query GetAllReceivables {
       receivables {
         id
-        customerName
+        financeItem
         amount
         currency {
           code
@@ -18,7 +18,7 @@ export const RECEIVABLE_QUERIES = {
         contract {
           id
           businessNo
-          customerName
+          theClient
         }
       }
     }
@@ -29,7 +29,7 @@ export const RECEIVABLE_QUERIES = {
     query GetReceivableById($id: ID!) {
       receivable(id: $id) {
         id
-        customerName
+        financeItem
         amount
         currency {\n          code\n          name\n          symbol\n        }
         status
@@ -37,7 +37,7 @@ export const RECEIVABLE_QUERIES = {
         contract {
           id
           businessNo
-          customerName
+          theClient
         }
       }
     }
@@ -48,7 +48,7 @@ export const RECEIVABLE_QUERIES = {
     query GetReceivablesByContract($contractId: ID!) {
       receivablesByContract(contractId: $contractId) {
         id
-        customerName
+        financeItem
         amount
         currency {\n          code\n          name\n          symbol\n        }
         status
@@ -62,7 +62,7 @@ export const RECEIVABLE_QUERIES = {
     query GetReceivablesByStatus($status: ReceivableStatus!) {
       receivablesByStatus(status: $status) {
         id
-        customerName
+        financeItem
         amount
         currency {\n          code\n          name\n          symbol\n        }
         status

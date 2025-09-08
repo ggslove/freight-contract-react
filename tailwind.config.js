@@ -6,7 +6,16 @@ export default {
   ],
   darkMode: 'selector',
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        primary: '#3c50e0',
+        secondary: '#80caee',
+        success: '#10b981',
+        warning: '#f59e0b',
+        error: '#ef4444',
+        info: '#06b6d4',
+      },
+    },
   },
   plugins: [],
 }

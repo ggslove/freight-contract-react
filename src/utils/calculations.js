@@ -102,9 +102,9 @@ export const formatDate = (dateString) => {
 export const getStatusColor = (status) => {
   const colors = {
     'pending': 'yellow',
-    'processing': 'blue',
+    'partial': 'blue',
     'completed': 'green',
-    'cancelled': 'red',
+    'overdue': 'red',
     'draft': 'gray'
   };
   
@@ -115,9 +115,9 @@ export const getStatusColor = (status) => {
 export const getStatusName = (status) => {
   const names = {
     'pending': '待处理',
-    'processing': '处理中',
+    'partial': '部分完成',
     'completed': '已完成',
-    'cancelled': '已取消',
+    'overdue': '已过期',
     'draft': '草稿'
   };
   

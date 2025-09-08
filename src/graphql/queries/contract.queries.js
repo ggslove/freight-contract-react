@@ -7,37 +7,18 @@ export const CONTRACT_QUERIES = {
       contracts {
         id
         businessNo
-        customerName
         billNo
         salesman
-        amount
+        theClient
+        invoiceNo
         status
-        contractDate
-        deliveryDate
-        description
-        createdAt
-        updatedAt
-      }
-    }
-  `,
-
-  // 根据ID获取合同
-  GET_CONTRACT_BY_ID: `
-    query GetContractById($id: ID!) {
-      contract(id: $id) {
-        id
-        businessNo
-        customerName
-        billNo
-        salesman
-        amount
-        status
-        contractDate
-        deliveryDate
-        description
+        quantity
+        dateOfReceipt
+        dateOfSailing
+        remarks
         receivables {
           id
-          customerName
+          financeItem
           amount
           currency {
             code
@@ -51,7 +32,56 @@ export const CONTRACT_QUERIES = {
         }
         payables {
           id
-          supplierName
+          financeItem
+          amount
+          currency {
+            code
+            name
+            symbol
+          }
+          dueDate
+          status
+          createdAt
+          updatedAt
+        }
+        createdAt
+        updatedAt
+      }
+    }
+  `,
+
+  // 根据ID获取合同
+  GET_CONTRACT_BY_ID: `
+    query GetContractById($id: ID!) {
+      contract(id: $id) {
+        id
+        businessNo
+        billNo
+        salesman
+        theClient
+        invoiceNo
+        quantity
+        status
+        dateOfReceipt
+        dateOfSailing
+        remarks
+        receivables {
+          id
+          financeItem
+          amount
+          currency {
+            code
+            name
+            symbol
+          }
+          dueDate
+          status
+          createdAt
+          updatedAt
+        }
+        payables {
+          id
+          financeItem
           amount
           currency {
             code
@@ -75,14 +105,15 @@ export const CONTRACT_QUERIES = {
       contractsByStatus(status: $status) {
         id
         businessNo
-        customerName
         billNo
         salesman
+        theClient
+        invoiceNo
         amount
         status
-        contractDate
-        deliveryDate
-        description
+        dateOfReceipt
+        dateOfSailing
+        remarks
         createdAt
         updatedAt
       }
@@ -94,7 +125,7 @@ export const CONTRACT_QUERIES = {
     query GetAllReceivables {
       receivables {
         id
-        customerName
+        financeItem
         amount
        
         dueDate
@@ -110,7 +141,7 @@ export const CONTRACT_QUERIES = {
     query GetReceivableById($id: ID!) {
       receivable(id: $id) {
         id
-        customerName
+        financeItem
         amount
        
         dueDate
@@ -126,7 +157,7 @@ export const CONTRACT_QUERIES = {
     query GetReceivablesByContract($contractId: ID!) {
       receivablesByContract(contractId: $contractId) {
         id
-        customerName
+        financeItem
         amount
        
         dueDate
@@ -142,7 +173,7 @@ export const CONTRACT_QUERIES = {
     query GetAllPayables {
       payables {
         id
-        supplierName
+        financeItem
         amount
        
         dueDate
@@ -158,7 +189,7 @@ export const CONTRACT_QUERIES = {
     query GetPayableById($id: ID!) {
       payable(id: $id) {
         id
-        supplierName
+        financeItem
         amount
        
         dueDate
@@ -174,7 +205,7 @@ export const CONTRACT_QUERIES = {
     query GetPayablesByContract($contractId: ID!) {
       payablesByContract(contractId: $contractId) {
         id
-        supplierName
+        financeItem
         amount
         dueDate
         status

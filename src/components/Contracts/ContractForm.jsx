@@ -1,12 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { t } from '../../utils/i18n';
+import { useQuery } from '@apollo/client/react';
+import { gql } from '@apollo/client';
+import { CURRENCY_QUERIES } from '../../graphql/queries/currency.queries.js';
 
 const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, showModal }) => {
   const [itemType, setItemType] = useState('receivable');
   const [itemName, setItemName] = useState('');
   const [itemCurrency, setItemCurrency] = useState('CNY');
   const [itemAmount, setItemAmount] = useState('');
+  const {GET_ACTIVE_CURRENCIES}=CURRENCY_QUERIES;
+  const { data: currenciesData, loading: currenciesLoading } = useQuery(gql(GET_ACTIVE_CURRENCIES));
+
+  // 确保组件在showModal为true时才渲染
+  if (!showModal) {
+    return null;
+  }
 
   const handleInputChange = (field, value) => {
     onFormChange({ ...formData, [field]: value });
@@ -17,19 +27,19 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
 
     const newItem = {
       id: Date.now(),
-      name: itemName.trim(),
-      currency: itemCurrency || 'CNY', // 确保货币有默认值
+      financeItem: itemName.trim(),
+      currencyCode: itemCurrency || 'CNY', // 确保货币有默认值
       amount: parseFloat(itemAmount),
       type: itemType,
-      status: '待确认'
+      status: 'PENDING'
     };
 
     if (itemType === 'receivable') {
-      const newReceivables = [...(formData.receivableItems || []), newItem];
-      onFormChange({ ...formData, receivableItems: newReceivables });
+      const newReceivables = [...(formData.receivables || []), newItem];
+      onFormChange({ ...formData, receivables: newReceivables });
     } else {
-      const newPayables = [...(formData.payableItems || []), newItem];
-      onFormChange({ ...formData, payableItems: newPayables });
+      const newPayables = [...(formData.payables || []), newItem];
+      onFormChange({ ...formData, payables: newPayables });
     }
 
     // 清空输入
@@ -39,34 +49,39 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
 
   const removeItem = (type, id) => {
     if (type === 'receivable') {
-      const newReceivables = (formData.receivableItems || []).filter(item => item.id !== id);
-      onFormChange({ ...formData, receivableItems: newReceivables });
+      const newReceivables = (formData.receivables || []).filter(item => item.id !== id);
+      onFormChange({ ...formData, receivables: newReceivables });
     } else {
-      const newPayables = (formData.payableItems || []).filter(item => item.id !== id);
-      onFormChange({ ...formData, payableItems: newPayables });
+      const newPayables = (formData.payables || []).filter(item => item.id !== id);
+      onFormChange({ ...formData, payables: newPayables });
     }
   };
 
   const updateItemStatus = (type, id, newStatus) => {
     if (type === 'receivable') {
-      const newReceivables = (formData.receivableItems || []).map(item =>
+      const newReceivables = (formData.receivables || []).map(item =>
         item.id === id ? { ...item, status: newStatus } : item
       );
-      onFormChange({ ...formData, receivableItems: newReceivables });
+      onFormChange({ ...formData, receivables: newReceivables });
     } else {
-      const newPayables = (formData.payableItems || []).map(item =>
+      const newPayables = (formData.payables || []).map(item =>
         item.id === id ? { ...item, status: newStatus } : item
       );
-      onFormChange({ ...formData, payableItems: newPayables });
+      onFormChange({ ...formData, payables: newPayables });
     }
   };
 
   const formatCurrency = (amount, currency = 'CNY') => {
-    if (isNaN(amount)) return '¥0.00';
+    if (isNaN(amount) || amount === null || amount === undefined) return '¥0.00';
     
-    const symbol = currency === 'USD' ? '$' : 
-                   currency === 'EUR' ? '€' : 
-                   currency === 'GBP' ? '£' : '¥';
+    // 处理货币可能是对象的情况
+    const currencyCode = typeof currency === 'object' ? currency.code : currency;
+    
+    const currencyInfo = currenciesData?.activeCurrencies?.find(c => c.code === currencyCode);
+    const symbol = currencyInfo?.symbol ||
+                   currencyCode === 'USD' ? '$' :
+                   currencyCode === 'EUR' ? '€' :
+                   currencyCode === 'GBP' ? '£' : '¥';
     
     return `${symbol}${parseFloat(amount).toFixed(2)}`;
   };
@@ -166,8 +181,8 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
               </label>
               <input
                 type="text"
-                value={formData.blNo}
-                onChange={(e) => handleInputChange('blNo', e.target.value)}
+                value={formData.billNo}
+                onChange={(e) => handleInputChange('billNo', e.target.value)}
                 style={{
                   width: '100%',
                   padding: '0.5rem',
@@ -181,31 +196,12 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
 
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
-                {t('contracts.invoiceNumber')} *
+                {t('contracts.theClient')} *
               </label>
               <input
                 type="text"
-                value={formData.invNo}
-                onChange={(e) => handleInputChange('invNo', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
-                }}
-                required
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
-                {t('contracts.customer')} *
-              </label>
-              <input
-                type="text"
-                value={formData.client}
-                onChange={(e) => handleInputChange('client', e.target.value)}
+                value={formData.theClient}
+                onChange={(e) => handleInputChange('theClient', e.target.value)}
                 style={{
                   width: '100%',
                   padding: '0.5rem',
@@ -222,7 +218,7 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
                 {t('contracts.quantity')} *
               </label>
               <input
-                type="number"
+                type="text"
                 value={formData.quantity}
                 onChange={(e) => handleInputChange('quantity', e.target.value)}
                 style={{
@@ -236,16 +232,38 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
               />
             </div>
 
+            <div>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+                {t('contracts.status')} *
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) => handleInputChange('status', e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem'
+                }}
+              >
+                <option value="PENDING">{t('contracts.statusPending')}</option>
+                <option value="PARTIAL">{t('contracts.statusPartial')}</option>
+                <option value="COMPLETED">{t('contracts.statusCompleted')}</option>
+                <option value="OVERDUE">{t('contracts.statusOverdue')}</option>
+              </select>
+            </div>
+
 
 
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
-                {t('contracts.receiptDate')} *
+                {t('contracts.dateOfReceipt')} *
               </label>
               <input
                 type="date"
-                value={formData.receiptDate}
-                onChange={(e) => handleInputChange('receiptDate', e.target.value)}
+                value={formData.dateOfReceipt}
+                onChange={(e) => handleInputChange('dateOfReceipt', e.target.value)}
                 style={{
                   width: '100%',
                   padding: '0.5rem',
@@ -259,12 +277,12 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
 
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
-                {t('contracts.departureDate')} *
+                {t('contracts.dateOfSailing')} *
               </label>
               <input
                 type="date"
-                value={formData.sailDate}
-                onChange={(e) => handleInputChange('sailDate', e.target.value)}
+                value={formData.dateOfSailing}
+                onChange={(e) => handleInputChange('dateOfSailing', e.target.value)}
                 style={{
                   width: '100%',
                   padding: '0.5rem',
@@ -278,12 +296,13 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
 
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
-                {t('contracts.taxNumber')}
+                {t('contracts.invoiceNo')}
               </label>
               <input
                 type="text"
-                value={formData.taxNumber || ''}
-                onChange={(e) => handleInputChange('taxNumber', e.target.value)}
+                value={formData.invoiceNo}
+                onChange={(e) => handleInputChange('invoiceNo', e.target.value)}
+                placeholder={t('contracts.optional')}
                 style={{
                   width: '100%',
                   padding: '0.5rem',
@@ -293,6 +312,27 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
                 }}
               />
             </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+                {t('contracts.remarks')}
+              </label>
+              <textarea
+                value={formData.remarks}
+                onChange={(e) => handleInputChange('remarks', e.target.value)}
+                placeholder={t('contracts.optional')}
+                rows="3"
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+            
           </div>
 
           {/* 应收应付明细 */}
@@ -363,11 +403,17 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
                     borderRadius: '0.25rem',
                     fontSize: '0.875rem'
                   }}
+                  disabled={currenciesLoading}
                 >
-                  <option value="CNY">CNY</option>
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
+                  {currenciesLoading ? (
+                    <option value="">{t('common.loading')}...</option>
+                  ) : (
+                    currenciesData?.activeCurrencies?.map(currency => (
+                      <option key={currency.code} value={currency.code}>
+                        {currency.code} - {currency.name}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
               
@@ -410,7 +456,7 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
             </div>
 
             {/* 明细列表 */}
-            {((formData.receivableItems && formData.receivableItems.length > 0) || (formData.payableItems && formData.payableItems.length > 0)) && (
+            {((formData.receivables && formData.receivables.length > 0) || (formData.payables && formData.payables.length > 0)) && (
               <div style={{
                 border: '1px solid #e5e7eb',
                 borderRadius: '0.375rem',
@@ -433,7 +479,7 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
                   <div style={{ width: '60px' }}></div>
                 </div>
                 
-                {formData.receivableItems && formData.receivableItems.map((item) => (
+                {formData.receivables && formData.receivables.map((item) => (
                   <div key={item.id} style={{
                     display: 'grid',
                     gridTemplateColumns: '1fr 2fr 1fr 1fr auto',
@@ -446,10 +492,10 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
                     <div style={{ color: '#374151' }}>
                       {t('contracts.receivables')}
                     </div>
-                    <div style={{ color: '#374151' }}>{item.name}</div>
-                    <div style={{ color: '#374151' }}>{item.currency}</div>
+                    <div style={{ color: '#374151' }}>{item.financeItem}</div>
+                    <div style={{ color: '#374151' }}>{typeof item.currencyCode === 'object' ? item.currencyCode.code : item.currencyCode}</div>
                     <div style={{ textAlign: 'right', fontWeight: '500' }}>
-                      {formatCurrency(item.amount, item.currency)}
+                      {formatCurrency(item.amount, item.currencyCode)}
                     </div>
                     <div style={{ textAlign: 'center' }}>
                       <button
@@ -471,7 +517,7 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
                   </div>
                 ))}
                 
-                {formData.payableItems && formData.payableItems.map((item) => (
+                {formData.payables && formData.payables.map((item) => (
                   <div key={item.id} style={{
                     display: 'grid',
                     gridTemplateColumns: '1fr 2fr 1fr 1fr auto',
@@ -484,10 +530,10 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
                     <div style={{ color: '#374151' }}>
                       {t('contracts.payables')}
                     </div>
-                    <div style={{ color: '#374151' }}>{item.name}</div>
-                    <div style={{ color: '#374151' }}>{item.currency}</div>
+                    <div style={{ color: '#374151' }}>{item.financeItem}</div>
+                    <div style={{ color: '#374151' }}>{typeof item.currencyCode === 'object' ? item.currencyCode.code : item.currencyCode}</div>
                     <div style={{ textAlign: 'right', fontWeight: '500' }}>
-                      {formatCurrency(item.amount, item.currency)}
+                      {formatCurrency(item.amount, item.currencyCode)}
                     </div>
                     <div style={{ textAlign: 'center' }}>
                       <button

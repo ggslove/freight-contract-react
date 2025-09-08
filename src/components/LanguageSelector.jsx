@@ -1,9 +1,9 @@
 import React from 'react';
-import { getCurrentLanguage, setLanguage, getSupportedLanguages } from '../utils/i18n';
+import { getCurrentLanguage, setLanguage, getAvailableLanguages } from '../utils/i18n';
 
 const LanguageSelector = () => {
   const currentLang = getCurrentLanguage();
-  const languages = getSupportedLanguages();
+  const languages = getAvailableLanguages();
 
   const handleLanguageChange = (e) => {
     setLanguage(e.target.value);
@@ -32,7 +32,7 @@ const LanguageSelector = () => {
       >
         {languages.map((lang) => (
           <option key={lang.code} value={lang.code}>
-            {lang.nativeName}
+            {lang.name}
           </option>
         ))}
       </select>

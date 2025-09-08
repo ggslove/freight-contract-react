@@ -5,24 +5,28 @@ export const PAYABLE_MUTATIONS = {
   CREATE_PAYABLE: `
     mutation CreatePayable(
       $contractId: ID!
-      $supplierName: String!
-      $amount: Float!
-      $currency: String!
+      $financeItem: String!
+      $amount: String!
+      $currencyCode: String!
       $dueDate: DateTime
-      $status: PayableStatus!
+      $status: ContractStatus!
     ) {
       createPayable(
         contractId: $contractId
-        supplierName: $supplierName
+        financeItem: $financeItem
         amount: $amount
-        currency: $currency
+        currencyCode: $currencyCode
         dueDate: $dueDate
         status: $status
       ) {
         id
-        supplierName
+        financeItem
         amount
-        currency
+        currency {
+          code
+          name
+          symbol
+        }
         dueDate
         status
       }
@@ -33,24 +37,28 @@ export const PAYABLE_MUTATIONS = {
   UPDATE_PAYABLE: `
     mutation UpdatePayable(
       $id: ID!
-      $supplierName: String
-      $amount: Float
-      $currency: String
+      $financeItem: String
+      $amount: String
+      $currencyCode: String
       $dueDate: DateTime
-      $status: PayableStatus
+      $status: ContractStatus
     ) {
       updatePayable(
         id: $id
-        supplierName: $supplierName
+        financeItem: $financeItem
         amount: $amount
-        currency: $currency
+        currencyCode: $currencyCode
         dueDate: $dueDate
         status: $status
       ) {
         id
-        supplierName
+        financeItem
         amount
-        currency
+        currency {
+          code
+          name
+          symbol
+        }
         dueDate
         status
       }

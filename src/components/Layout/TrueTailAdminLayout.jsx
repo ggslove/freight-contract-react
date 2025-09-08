@@ -384,8 +384,7 @@ const TrueTailAdminLayout = ({ children }) => {
                   defaultValue={localStorage.getItem('language') || 'zh'}
                 >
                   <option value="zh">中文</option>
-                  <option value="en">EN</option>
-                  <option value="id">ID</option>
+                  <option value="en">English</option>
                 </select>
               </div>
             </div>

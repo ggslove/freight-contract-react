@@ -203,7 +203,7 @@ const TrueDashboardPage = () => {
               {t('dashboard.title')}
             </h1>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
-              {t('dashboard.welcome', { name: user?.username || 'User' })}
+              {t('dashboard.welcome', { name: user?.username || 'Admin' })}
             </p>
           </div>
           
@@ -336,7 +336,7 @@ const TrueDashboardPage = () => {
                     <div key={contract.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          {contract.customerName}
+                          {typeof contract.theClient === 'object' ? contract.theClient?.name || contract.theClient?.clientName || '未知客户' : contract.theClient || '未知客户'}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                           合同编号: {contract.businessNo}

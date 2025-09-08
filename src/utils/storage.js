@@ -74,7 +74,7 @@ export const searchContracts = (query) => {
   const searchTerm = query.toLowerCase();
   return contracts.filter(contract => 
     contract.businessNumber?.toLowerCase().includes(searchTerm) ||
-    contract.customerName?.toLowerCase().includes(searchTerm) ||
+    contract.theClient?.toLowerCase().includes(searchTerm) ||
     contract.blNumber?.toLowerCase().includes(searchTerm) ||
     contract.vessel?.toLowerCase().includes(searchTerm) ||
     contract.pol?.toLowerCase().includes(searchTerm) ||

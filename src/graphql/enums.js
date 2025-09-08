@@ -3,9 +3,9 @@
 // 合同状态枚举
 export const ContractStatus = {
   PENDING: 'PENDING',     // 待处理
-  PROCESSING: 'PROCESSING', // 处理中
+  PARTIAL: 'PARTIAL',     // 部分完成
   COMPLETED: 'COMPLETED',   // 已完成
-  CANCELLED: 'CANCELLED'   // 已取消
+  OVERDUE: 'OVERDUE'      // 已过期
 };
 
 // 应收款状态枚举

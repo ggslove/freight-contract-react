@@ -6,7 +6,7 @@ export const PAYABLE_QUERIES = {
     query GetAllPayables {
       payables {
         id
-        supplierName
+        financeItem
         amount
         currency {
           code
@@ -18,7 +18,7 @@ export const PAYABLE_QUERIES = {
         contract {
           id
           businessNo
-          customerName
+          theClient
         }
       }
     }
@@ -29,7 +29,7 @@ export const PAYABLE_QUERIES = {
     query GetPayableById($id: ID!) {
       payable(id: $id) {
         id
-        supplierName
+        financeItem
         amount
         currency {
           code
@@ -41,7 +41,7 @@ export const PAYABLE_QUERIES = {
         contract {
           id
           businessNo
-          customerName
+          theClient
         }
       }
     }
@@ -52,7 +52,7 @@ export const PAYABLE_QUERIES = {
     query GetPayablesByContract($contractId: ID!) {
       payablesByContract(contractId: $contractId) {
         id
-        supplierName
+        financeItem
         amount
         currency {
           code
@@ -70,7 +70,7 @@ export const PAYABLE_QUERIES = {
     query GetPayablesByStatus($status: PayableStatus!) {
       payablesByStatus(status: $status) {
         id
-        supplierName
+        financeItem
         amount
         currency {
           code

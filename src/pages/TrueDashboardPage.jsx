@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
+import { Doughnut, Bar } from 'react-chartjs-2';
 import { t } from '../utils/i18n';
 import contractService from '../services/contractService';
 import currencyService from '../services/currencyService';
+
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 // TailAdmin风格的卡片组件
 const StatCard = ({ title, value, subtitle, icon: Icon, trend, trendUp }) => (
@@ -57,33 +61,64 @@ const UsersIcon = () => (
 );
 
 const TrueDashboardPage = () => {
-  const user = { username: 'Admin' }; // 临时用户数据
+  const [user, setUser] = useState({ username: 'Admin' });
   const [stats, setStats] = useState({
     totalContracts: 0,
     totalRevenue: 0,
     totalCurrencies: 0,
-    netCashflow: 0
+    netCashflow: 0,
+    pendingContracts: 0,
+    completedContracts: 0,
+    totalReceivables: 0,
+    totalPayables: 0
   });
   const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0]
+  });
+  const [recentContracts, setRecentContracts] = useState([]);
 
   useEffect(() => {
+    const userInfo = localStorage.getItem('user');
+    if (userInfo) {
+      setUser(JSON.parse(userInfo));
+    }
+
     const fetchStats = async () => {
       try {
         setLoading(true);
         const [contracts, currencies] = await Promise.all([
-          contractService.getContracts(),
-          currencyService.getCurrencies()
+          contractService.getAllContracts(),
+          currencyService.getAllCurrencies()
         ]);
 
-        const totalRevenue = contracts.reduce((sum, contract) => sum + (contract.revenue || 0), 0);
-        const totalExpenses = contracts.reduce((sum, contract) => sum + (contract.expenses || 0), 0);
+        // 计算总收入（合同金额总和）
+        const totalRevenue = contracts.reduce((sum, contract) => sum + (contract.amount || 0), 0);
+        
+        // 计算应收账款（待收款的合同金额总和）
+        const pendingContracts = contracts.filter(c => c.status === 'PENDING');
+        const totalReceivables = pendingContracts.reduce((sum, contract) => sum + (contract.amount || 0), 0);
+        
+        // 计算应付账款（这里简化处理，假设为合同金额的70%）
+        const totalPayables = totalRevenue * 0.7;
 
         setStats({
           totalContracts: contracts.length,
           totalRevenue,
           totalCurrencies: currencies.length,
-          netCashflow: totalRevenue - totalExpenses
+          netCashflow: totalRevenue - totalPayables,
+          pendingContracts: pendingContracts.length,
+          completedContracts: contracts.filter(c => c.status === 'COMPLETED').length,
+          totalReceivables,
+          totalPayables
         });
+
+        // 获取最近合同
+        const sortedContracts = contracts
+          .sort((a, b) => new Date(b.createdAt || b.contractDate) - new Date(a.createdAt || a.contractDate))
+          .slice(0, 5);
+        setRecentContracts(sortedContracts);
       } catch (error) {
         console.error('Error fetching dashboard stats:', error);
       } finally {
@@ -92,7 +127,7 @@ const TrueDashboardPage = () => {
     };
 
     fetchStats();
-  }, []);
+  }, [dateRange]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('zh-CN', {
@@ -101,16 +136,94 @@ const TrueDashboardPage = () => {
     }).format(amount);
   };
 
+  const handleDateChange = (field, value) => {
+    setDateRange(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // 图表数据
+  const currencyDistribution = {
+    labels: ['人民币', '美元', '欧元', '英镑', '日元'],
+    datasets: [
+      {
+        data: [45, 30, 15, 7, 3],
+        backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'],
+        borderWidth: 0,
+      },
+    ],
+  };
+
+  const monthlyRevenue = {
+    labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+    datasets: [
+      {
+        label: '收入',
+        data: [280000, 320000, 290000, 350000, 380000, 420000],
+        backgroundColor: '#3B82F6',
+        borderRadius: 4,
+      },
+      {
+        label: '支出',
+        data: [220000, 260000, 240000, 290000, 310000, 340000],
+        backgroundColor: '#EF4444',
+        borderRadius: 4,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value) {
+            return '¥' + (value / 10000) + '万';
+          }
+        }
+      }
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          {t('dashboard.title')}
-        </h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
-          {t('dashboard.welcome', { name: user?.username || 'User' })}
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              {t('dashboard.title')}
+            </h1>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">
+              {t('dashboard.welcome', { name: user?.username || 'User' })}
+            </p>
+          </div>
+          
+          {/* Date Range Selector */}
+          <div className="mt-4 sm:mt-0 flex items-center space-x-2">
+            <input
+              type="date"
+              value={dateRange.startDate}
+              onChange={(e) => handleDateChange('startDate', e.target.value)}
+              className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:border-transparent focus:outline-hidden"
+            />
+            <span className="text-gray-500 dark:text-gray-400">-</span>
+            <input
+              type="date"
+              value={dateRange.endDate}
+              onChange={(e) => handleDateChange('endDate', e.target.value)}
+              className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:border-transparent focus:outline-hidden"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -142,7 +255,65 @@ const TrueDashboardPage = () => {
           icon={ChartIcon}
           trend={stats.netCashflow > 0 ? 15 : -5}
           trendUp={stats.netCashflow > 0}
-        />\n      </div>
+        />    
+      </div>
+
+      {/* Extended Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <StatCard
+          title="待处理合同"
+          value={loading ? '...' : stats.pendingContracts}
+          icon={ClockIcon}
+          trend={-3}
+          trendUp={false}
+        />
+        <StatCard
+          title="已完成合同"
+          value={loading ? '...' : stats.completedContracts}
+          icon={CheckIcon}
+          trend={15}
+          trendUp={true}
+        />
+        <StatCard
+          title="应收账款"
+          value={loading ? '...' : formatCurrency(stats.totalReceivables)}
+          icon={ReceiptIcon}
+          trend={8}
+          trendUp={true}
+        />
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            月度收支趋势
+          </h3>
+          <div className="h-64">
+            <Bar data={monthlyRevenue} options={chartOptions} />
+          </div>
+        </div>
+        
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            币种分布
+          </h3>
+          <div className="h-64">
+            <Doughnut 
+              data={currencyDistribution} 
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'bottom',
+                  },
+                },
+              }} 
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Recent Activity Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -154,20 +325,50 @@ const TrueDashboardPage = () => {
             </h3>
           </div>
           <div className="p-6">
-            <div className="space-y-4">
-              {loading ? (
-                <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <FileIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400">
-                    {t('dashboard.noRecentActivity')}
-                  </p>
-                </div>
-              )}
-            </div>
+            {loading ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentContracts.length > 0 ? (
+                  recentContracts.map((contract) => (
+                    <div key={contract.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {contract.customerName}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          合同编号: {contract.businessNo}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {formatCurrency(contract.amount)}
+                        </p>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          contract.status === 'COMPLETED' 
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                            : contract.status === 'PENDING'
+                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                            : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                        }`}>
+                          {contract.status === 'PENDING' ? '待处理' :
+                           contract.status === 'COMPLETED' ? '已完成' : '进行中'}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <FileIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 dark:text-gray-400">
+                      {t('dashboard.noRecentActivity')}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -197,10 +398,28 @@ const TrueDashboardPage = () => {
   );
 };
 
-// 添加CurrencyIcon组件
+// 添加扩展图标组件
 const CurrencyIcon = () => (
   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+const ClockIcon = () => (
+  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+const ReceiptIcon = () => (
+  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
   </svg>
 );
 

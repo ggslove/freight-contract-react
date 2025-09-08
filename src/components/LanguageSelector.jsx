@@ -15,7 +15,7 @@ const LanguageSelector = () => {
         value={currentLang}
         onChange={handleLanguageChange}
         style={{
-          padding: '0.5rem 2rem 0.5rem 0.75rem',
+          padding: '0.375rem 2rem 0.375rem 0.75rem',
           border: '1px solid #d1d5db',
           borderRadius: '0.375rem',
           backgroundColor: 'white',
@@ -26,7 +26,8 @@ const LanguageSelector = () => {
           backgroundPosition: 'right 0.5rem center',
           backgroundRepeat: 'no-repeat',
           backgroundSize: '1.5em 1.5em',
-          minWidth: '120px'
+          minWidth: '100px',
+          color: '#374151'
         }}
       >
         {languages.map((lang) => (

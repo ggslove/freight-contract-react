@@ -159,7 +159,7 @@ const TrueTailAdminLayout = ({ children }) => {
   return (
     <div className={`${darkMode ? 'dark' : ''} bg-gray-50 dark:bg-gray-900 min-h-screen`}>
       <div className="flex min-h-screen">
-        {/* Sidebar - 使用flex布局而非fixed定位 */}
+        {/* Sidebar - 固定高度，内容可滚动 */}
         <div className={`
           ${collapsed ? 'w-16' : 'w-64'} 
           bg-white dark:bg-gray-900 
@@ -167,10 +167,12 @@ const TrueTailAdminLayout = ({ children }) => {
           transition-all duration-300 ease-in-out 
           shadow-lg
           flex-shrink-0
+          h-screen
+          sticky top-0
         `}>
           <div className="h-full flex flex-col">
             {/* Logo - 美化版本，使用登录界面的船图标 */}
-            <div className="px-6 py-8 border-b border-gray-200 dark:border-gray-700">
+            <div className="px-6 py-8 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg transform hover:scale-105 transition-transform duration-200">
                   <Ship className="w-6 h-6 text-white" />
@@ -186,9 +188,10 @@ const TrueTailAdminLayout = ({ children }) => {
               </div>
             </div>
 
-            {/* Navigation - 美化版本 */}
-            <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-              {navigation.map((item) => {
+            {/* Navigation - 可滚动内容区域 */}
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                {navigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = isMenuActive(item);
                 const hasChildren = item.children && item.children.length > 0;
@@ -272,10 +275,11 @@ const TrueTailAdminLayout = ({ children }) => {
                   </div>
                 );
               })}
-            </nav>
+              </nav>
+            </div>
 
-            {/* User Section - 美化版本 */}
-            <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-700">
+            {/* User Section - 固定在底部 */}
+            <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-700 mt-auto">
               <button
                 onClick={handleLogout}
                 className="flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 w-full group"
@@ -332,6 +336,22 @@ const TrueTailAdminLayout = ({ children }) => {
                     </svg>
                   )}
                 </button>
+
+                {/* Language Selector - 简洁语言切换 */}
+                <select 
+                  onChange={(e) => {
+                    const newLang = e.target.value;
+                    localStorage.setItem('language', newLang);
+                    window.dispatchEvent(new CustomEvent('languageChanged', { detail: newLang }));
+                    window.location.reload();
+                  }}
+                  className="text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  defaultValue={localStorage.getItem('language') || 'zh'}
+                >
+                  <option value="zh">中文</option>
+                  <option value="en">EN</option>
+                  <option value="id">ID</option>
+                </select>
 
                 {/* Notification */}
                 <button className="text-gray-500 hover:text-gray-700 focus:outline-none dark:text-gray-400 dark:hover:text-gray-300 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative">

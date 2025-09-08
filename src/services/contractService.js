@@ -142,6 +142,71 @@ const contractService = {
       variables: { id }
     });
     return data.deletePayable;
+  },
+
+  // 同时创建应收和应付记录
+  async createReceivableAndPayable(contractId, receivableData, payableData) {
+    try {
+      // 创建应收记录
+      const receivableResult = await this.createReceivable({
+        contractId,
+        ...receivableData
+      });
+
+      // 创建应付记录
+      const payableResult = await this.createPayable({
+        contractId,
+        ...payableData
+      });
+
+      return {
+        receivable: receivableResult,
+        payable: payableResult,
+        success: true
+      };
+    } catch (error) {
+      console.error('创建应收应付记录失败:', error);
+      return {
+        receivable: null,
+        payable: null,
+        success: false,
+        error: error.message
+      };
+    }
+  },
+
+  // 创建完整合同记录（包含合同、应收、应付）
+  async createCompleteContract(contractData, receivableData, payableData) {
+    try {
+      // 1. 先创建合同
+      const contract = await this.createContract(contractData);
+      
+      if (!contract) {
+        throw new Error('创建合同失败');
+      }
+
+      // 2. 创建应收和应付记录
+      const financialRecords = await this.createReceivableAndPayable(
+        contract.id,
+        receivableData,
+        payableData
+      );
+
+      return {
+        contract,
+        ...financialRecords,
+        success: true
+      };
+    } catch (error) {
+      console.error('创建完整合同记录失败:', error);
+      return {
+        contract: null,
+        receivable: null,
+        payable: null,
+        success: false,
+        error: error.message
+      };
+    }
   }
 };
 

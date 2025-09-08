@@ -1,5 +1,7 @@
 /* index.css - TailwindCSS 集成文件 */
-@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* TailAdmin CSS Variables */
 :root {
@@ -19,4 +21,13 @@
   --color-warning: #fbbf24;
   --color-error: #f87171;
   --color-info: #22d3ee;
+}
+
+/* 基础样式确保深色模式正常工作 */
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }

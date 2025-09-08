@@ -35,7 +35,7 @@ const Layout = ({ children }) => {
           }}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <Link to="/" style={{ display: 'flex', alignItems: 'center' }}>
-                <Ship style={{ width: '2rem', height: '2rem', color: '#2563eb' }} />
+                <Ship style={{ width: '1.5rem', height: '1.5rem', color: '#2563eb' }} />
                 <span style={{
                   marginLeft: '0.5rem',
                   fontSize: '1.125rem',
@@ -144,7 +144,7 @@ const Layout = ({ children }) => {
                       }}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <item.icon size={20} />
+                      <item.icon size={24} />
                       {item.name}
                     </Link>
                   );
@@ -186,7 +186,7 @@ const Layout = ({ children }) => {
                     textDecoration: 'none'
                   }}
                 >
-                  <LogOut size={20} />
+                  <LogOut size={24} />
                   {t('nav.logout')}
                 </button>
               </div>

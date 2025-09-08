@@ -153,42 +153,79 @@ const ContractsPage = () => {
           status: editingContract.status || 'PENDING'
         });
       } else {
-        // 创建合同
-        const result = await contractService.createContract(contractData);
-        const newContractId = result.id;
+        // 使用新的完整合同创建方法
+        const totalReceivableAmount = formData.receivableItems?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0;
+        const totalPayableAmount = formData.payableItems?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0;
         
-        // 创建应收记录
-        if (formData.receivableItems && formData.receivableItems.length > 0) {
-          for (const receivable of formData.receivableItems) {
-            if (!receivable.currency) {
-              receivable.currency = 'CNY'; // 确保货币有默认值
-            }
-            await contractService.createReceivable({
-              contractId: newContractId,
-              customerName: receivable.name || '未知客户',
-              amount: receivable.amount || 0,
-              currency: receivable.currency,
-              status: 'PENDING',
-              dueDate: formatDateForBackend(formData.sailDate) // 使用开航日期作为默认到期日
-            });
+        // 准备应收数据
+        const receivableData = formData.receivableItems?.[0] || {
+          customerName: formData.client || '未知客户',
+          amount: totalReceivableAmount,
+          currencyCode: formData.currency || 'CNY',
+          status: 'PENDING',
+          dueDate: formatDateForBackend(formData.sailDate)
+        };
+
+        // 准备应付数据
+        const payableData = formData.payableItems?.[0] || {
+          supplierName: '未知供应商',
+          amount: totalPayableAmount,
+          currencyCode: formData.currency || 'CNY',
+          status: 'PENDING',
+          dueDate: formatDateForBackend(formData.sailDate)
+        };
+
+        // 使用新的完整合同创建方法
+        const result = await contractService.createCompleteContract(
+          contractData,
+          receivableData,
+          payableData
+        );
+
+        if (!result.success) {
+          throw new Error(result.error || '创建合同失败');
+        }
+
+        // 如果有多条应收/应付记录，额外创建
+        const additionalPromises = [];
+        
+        // 创建额外的应收记录（跳过第一条，因为已经创建了）
+        if (formData.receivableItems && formData.receivableItems.length > 1) {
+          for (let i = 1; i < formData.receivableItems.length; i++) {
+            const receivable = formData.receivableItems[i];
+            additionalPromises.push(
+              contractService.createReceivable({
+                contractId: result.contract.id,
+                customerName: receivable.name || '未知客户',
+                amount: receivable.amount || 0,
+                currencyCode: receivable.currency || 'CNY',
+                status: 'PENDING',
+                dueDate: formatDateForBackend(formData.sailDate)
+              })
+            );
           }
         }
         
-        // 创建应付记录
-        if (formData.payableItems && formData.payableItems.length > 0) {
-          for (const payable of formData.payableItems) {
-            if (!payable.currency) {
-              payable.currency = 'CNY'; // 确保货币有默认值
-            }
-            await contractService.createPayable({
-              contractId: newContractId,
-              supplierName: payable.name || '未知供应商',
-              amount: payable.amount || 0,
-              currency: payable.currency,
-              status: 'PENDING',
-              dueDate: formatDateForBackend(formData.sailDate) // 使用开航日期作为默认到期日
-            });
+        // 创建额外的应付记录（跳过第一条，因为已经创建了）
+        if (formData.payableItems && formData.payableItems.length > 1) {
+          for (let i = 1; i < formData.payableItems.length; i++) {
+            const payable = formData.payableItems[i];
+            additionalPromises.push(
+              contractService.createPayable({
+                contractId: result.contract.id,
+                supplierName: payable.name || '未知供应商',
+                amount: payable.amount || 0,
+                currencyCode: payable.currency || 'CNY',
+                status: 'PENDING',
+                dueDate: formatDateForBackend(formData.sailDate)
+              })
+            );
           }
+        }
+
+        // 等待所有额外的记录创建完成
+        if (additionalPromises.length > 0) {
+          await Promise.all(additionalPromises);
         }
       }
       

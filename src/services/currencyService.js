@@ -1,5 +1,5 @@
 import client from '../apollo-client';
-import { gql } from '@apollo/client/core';
+import { gql } from '@apollo/client';
 import {CURRENCY_QUERIES} from '../graphql/queries/currency.queries';
 import {CURRENCY_MUTATIONS} from '../graphql/mutations/currency.mutations';
 const  {

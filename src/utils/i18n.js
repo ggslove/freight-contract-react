@@ -47,11 +47,15 @@ export const t = (key, params = {}, fallback = key) => {
 // 设置语言
 export const setLanguage = (lang) => {
   if (['zh', 'en'].includes(lang)) {
+    const oldLanguage = currentLanguage;
     currentLanguage = lang;
     setStoredLanguage(lang);
     
-    // 触发语言变更事件
-    window.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
+    // 只在语言实际变化时触发事件
+    if (oldLanguage !== lang) {
+      console.log('🌐 Language changed from', oldLanguage, 'to', lang);
+      window.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
+    }
   }
 };
 

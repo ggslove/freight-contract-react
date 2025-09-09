@@ -33,20 +33,41 @@ const UserManagementPage = () => {
 
   const fetchUsers = async () => {
     try {
+      console.log("----------> fetchUsers at", new Date().toISOString());
       setLoading(true);
       setError(null);
       const data = await userService.getAllUsers();
       setUsers(data);
     } catch (error) {
       console.error(t('users.fetchUsersFailed'), error);
-      setError(t('users.fetchUsersFailed') + ': ' + error.message);
+      // 避免重复显示相同的错误
+      if (error.message !== (error.message || '').toString()) {
+        setError(t('users.fetchUsersFailed') + ': ' + error.message);
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  // 合并初始加载和语言变化监听
   useEffect(() => {
     fetchUsers();
+
+    let languageChangeTimeout;
+    const handleLanguageChange = () => {
+      // 防抖处理，避免重复调用
+      clearTimeout(languageChangeTimeout);
+      languageChangeTimeout = setTimeout(() => {
+        console.log('🌐 Language change triggered fetchUsers');
+        fetchUsers();
+      }, 100);
+    };
+
+    window.addEventListener('languageChanged', handleLanguageChange);
+    return () => {
+      window.removeEventListener('languageChanged', handleLanguageChange);
+      clearTimeout(languageChangeTimeout);
+    };
   }, []);
 
   const getRoleDisplayName = (role) => {

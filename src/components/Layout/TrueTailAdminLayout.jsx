@@ -378,7 +378,6 @@ const TrueTailAdminLayout = ({ children }) => {
                     const newLang = e.target.value;
                     localStorage.setItem('language', newLang);
                     window.dispatchEvent(new CustomEvent('languageChanged', { detail: newLang }));
-                    window.location.reload();
                   }}
                   className="text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   defaultValue={localStorage.getItem('language') || 'zh'}

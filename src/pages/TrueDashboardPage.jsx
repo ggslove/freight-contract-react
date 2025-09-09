@@ -79,54 +79,76 @@ const TrueDashboardPage = () => {
   });
   const [recentContracts, setRecentContracts] = useState([]);
 
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      const [contracts, currencies] = await Promise.all([
+        contractService.getAllContracts(),
+        currencyService.getAllCurrencies()
+      ]);
+
+      // 计算总收入（合同金额总和）
+      const totalRevenue = contracts.reduce((sum, contract) => sum + (contract.amount || 0), 0);
+      
+      // 计算应收账款（待收款的合同金额总和）
+      const pendingContracts = contracts.filter(c => c.status === 'PENDING');
+      const totalReceivables = pendingContracts.reduce((sum, contract) => sum + (contract.amount || 0), 0);
+      
+      // 计算应付账款（这里简化处理，假设为合同金额的70%）
+      const totalPayables = totalRevenue * 0.7;
+
+      setStats({
+        totalContracts: contracts.length,
+        totalRevenue,
+        totalCurrencies: currencies.length,
+        netCashflow: totalRevenue - totalPayables,
+        pendingContracts: pendingContracts.length,
+        completedContracts: contracts.filter(c => c.status === 'COMPLETED').length,
+        totalReceivables,
+        totalPayables
+      });
+
+      // 获取最近合同
+      const sortedContracts = contracts
+        .sort((a, b) => new Date(b.createdAt || b.contractDate) - new Date(a.createdAt || a.contractDate))
+        .slice(0, 5);
+      setRecentContracts(sortedContracts);
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const userInfo = localStorage.getItem('user');
     if (userInfo) {
       setUser(JSON.parse(userInfo));
     }
 
-    const fetchStats = async () => {
-      try {
-        setLoading(true);
-        const [contracts, currencies] = await Promise.all([
-          contractService.getAllContracts(),
-          currencyService.getAllCurrencies()
-        ]);
+    fetchStats();
+  }, [dateRange]);
 
-        // 计算总收入（合同金额总和）
-        const totalRevenue = contracts.reduce((sum, contract) => sum + (contract.amount || 0), 0);
-        
-        // 计算应收账款（待收款的合同金额总和）
-        const pendingContracts = contracts.filter(c => c.status === 'PENDING');
-        const totalReceivables = pendingContracts.reduce((sum, contract) => sum + (contract.amount || 0), 0);
-        
-        // 计算应付账款（这里简化处理，假设为合同金额的70%）
-        const totalPayables = totalRevenue * 0.7;
+  // 监听语言变化
+  // 合并初始加载和语言变化监听
+  useEffect(() => {
+    fetchStats();
 
-        setStats({
-          totalContracts: contracts.length,
-          totalRevenue,
-          totalCurrencies: currencies.length,
-          netCashflow: totalRevenue - totalPayables,
-          pendingContracts: pendingContracts.length,
-          completedContracts: contracts.filter(c => c.status === 'COMPLETED').length,
-          totalReceivables,
-          totalPayables
-        });
-
-        // 获取最近合同
-        const sortedContracts = contracts
-          .sort((a, b) => new Date(b.createdAt || b.contractDate) - new Date(a.createdAt || a.contractDate))
-          .slice(0, 5);
-        setRecentContracts(sortedContracts);
-      } catch (error) {
-        console.error('Error fetching dashboard stats:', error);
-      } finally {
-        setLoading(false);
-      }
+    let languageChangeTimeout;
+    const handleLanguageChange = (event) => {
+      // 防抖处理，避免重复调用
+      clearTimeout(languageChangeTimeout);
+      languageChangeTimeout = setTimeout(() => {
+        console.log('🌐 Language change triggered fetchStats');
+        fetchStats();
+      }, 100);
     };
 
-    fetchStats();
+    window.addEventListener('languageChanged', handleLanguageChange);
+    return () => {
+      window.removeEventListener('languageChanged', handleLanguageChange);
+      clearTimeout(languageChangeTimeout);
+    };
   }, [dateRange]);
 
   const formatCurrency = (amount) => {

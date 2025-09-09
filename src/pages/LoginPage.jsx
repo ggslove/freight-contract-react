@@ -38,7 +38,6 @@ const LoginPage = () => {
     const newLang = e.target.value;
     localStorage.setItem('language', newLang);
     window.dispatchEvent(new CustomEvent('languageChanged', { detail: newLang }));
-    window.location.reload();
   };
 
   return (

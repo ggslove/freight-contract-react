@@ -6,6 +6,7 @@ const LanguageSelector = () => {
   const languages = getAvailableLanguages();
 
   const handleLanguageChange = (e) => {
+    e.preventDefault();
     setLanguage(e.target.value);
   };
 

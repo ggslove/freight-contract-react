@@ -59,19 +59,25 @@ const ContractsPage = () => {
     }
   };
 
+  // 合并初始加载和语言变化监听
   useEffect(() => {
     fetchContracts();
-  }, []);
 
-  // 监听语言变化
-  useEffect(() => {
+    let languageChangeTimeout;
     const handleLanguageChange = (event) => {
       setLanguageState(event.detail);
+      // 防抖处理，避免重复调用
+      clearTimeout(languageChangeTimeout);
+      languageChangeTimeout = setTimeout(() => {
+        console.log('🌐 Language change triggered fetchContracts');
+        fetchContracts();
+      }, 100);
     };
 
     window.addEventListener('languageChanged', handleLanguageChange);
     return () => {
       window.removeEventListener('languageChanged', handleLanguageChange);
+      clearTimeout(languageChangeTimeout);
     };
   }, []);
 

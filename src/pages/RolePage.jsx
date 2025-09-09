@@ -41,8 +41,25 @@ const RoleManagementPage = () => {
     }
   };
 
+  // 合并初始加载和语言变化监听
   useEffect(() => {
     fetchRoles();
+
+    let languageChangeTimeout;
+    const handleLanguageChange = () => {
+      // 防抖处理，避免重复调用
+      clearTimeout(languageChangeTimeout);
+      languageChangeTimeout = setTimeout(() => {
+        console.log('🌐 Language change triggered fetchRoles');
+        fetchRoles();
+      }, 100);
+    };
+
+    window.addEventListener('languageChanged', handleLanguageChange);
+    return () => {
+      window.removeEventListener('languageChanged', handleLanguageChange);
+      clearTimeout(languageChangeTimeout);
+    };
   }, []);
 
   const handleAddRole = async () => {

@@ -3,6 +3,20 @@ import { X, Plus, Trash2 } from 'lucide-react';
 import { t } from '../../utils/i18n';
 import { useQuery } from '@apollo/client/react';
 import { gql } from '@apollo/client';
+import { 
+  modalOverlay, 
+  modalContainer, 
+  modalHeader, 
+  modalCloseButton, 
+  formContainer, 
+  formGrid, 
+  inputLabel, 
+  inputField, 
+  selectField, 
+  buttonPrimary, 
+  buttonSecondary, 
+  modalFooter
+} from '../../styles/formStyle';
 import { CURRENCY_QUERIES } from '../../graphql/queries/currency.queries.js';
 
 const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, showModal }) => {
@@ -89,163 +103,103 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
   if (!showModal) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 50
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: '0.5rem',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-        width: '100%',
+    <div style={modalOverlay}>
+      <div style={{...modalContainer,
         maxWidth: '60rem',
         maxHeight: '90vh',
         overflow: 'auto'
       }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '1.5rem',
-          borderBottom: '1px solid #e5e7eb'
-        }}>
+        <div style={modalHeader}>
           <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold' }}>
             {isEditing ? t('contracts.editContract') : t('contracts.addContract')}
           </h3>
           <button
             onClick={onClose}
-            style={{
-              color: '#6b7280',
-              cursor: 'pointer',
-              background: 'none',
-              border: 'none',
-              padding: 0
-            }}
+            style={modalCloseButton}
           >
             <X style={{ width: '1.5rem', height: '1.5rem' }} />
           </button>
         </div>
 
-        <form onSubmit={onSubmit} style={{ padding: '1.5rem' }}>
+        <form onSubmit={onSubmit} style={formContainer}>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
             gap: '1rem'
           }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+              <label style={inputLabel}>
                 {t('contracts.contractNumber')} *
               </label>
               <input
                 type="text"
                 value={formData.businessNo}
                 onChange={(e) => handleInputChange('businessNo', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
-                }}
+                style={inputField}
                 required
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+              <label style={inputLabel}>
                 {t('contracts.salesman')} *
               </label>
               <input
                 type="text"
                 value={formData.salesman}
                 onChange={(e) => handleInputChange('salesman', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
-                }}
+                style={inputField}
                 required
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+              <label style={inputLabel}>
                 {t('contracts.billNumber')} *
               </label>
               <input
                 type="text"
                 value={formData.billNo}
                 onChange={(e) => handleInputChange('billNo', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
-                }}
+                style={inputField}
                 required
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+              <label style={inputLabel}>
                 {t('contracts.theClient')} *
               </label>
               <input
                 type="text"
                 value={formData.theClient}
                 onChange={(e) => handleInputChange('theClient', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
-                }}
+                style={inputField}
                 required
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+              <label style={inputLabel}>
                 {t('contracts.quantity')} *
               </label>
               <input
                 type="text"
                 value={formData.quantity}
                 onChange={(e) => handleInputChange('quantity', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
-                }}
+                style={inputField}
                 required
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+              <label style={inputLabel}>
                 {t('contracts.status')} *
               </label>
               <select
                 value={formData.status}
                 onChange={(e) => handleInputChange('status', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
-                }}
+                style={selectField}
               >
                 <option value="PENDING">{t('contracts.statusPending')}</option>
                 <option value="PARTIAL">{t('contracts.statusPartial')}</option>
@@ -257,45 +211,33 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
 
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+              <label style={inputLabel}>
                 {t('contracts.dateOfReceipt')} *
               </label>
               <input
                 type="date"
                 value={formData.dateOfReceipt}
                 onChange={(e) => handleInputChange('dateOfReceipt', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
-                }}
+                style={inputField}
                 required
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+              <label style={inputLabel}>
                 {t('contracts.dateOfSailing')} *
               </label>
               <input
                 type="date"
                 value={formData.dateOfSailing}
                 onChange={(e) => handleInputChange('dateOfSailing', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
-                }}
+                style={inputField}
                 required
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+              <label style={inputLabel}>
                 {t('contracts.invoiceNo')}
               </label>
               <input
@@ -303,18 +245,12 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
                 value={formData.invoiceNo}
                 onChange={(e) => handleInputChange('invoiceNo', e.target.value)}
                 placeholder={t('contracts.optional')}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
-                }}
+                style={inputField}
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+              <label style={inputLabel}>
                 {t('contracts.remarks')}
               </label>
               <textarea
@@ -322,14 +258,7 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
                 onChange={(e) => handleInputChange('remarks', e.target.value)}
                 placeholder={t('contracts.optional')}
                 rows="3"
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem',
-                  resize: 'vertical'
-                }}
+                style={inputField}
               />
             </div>
             
@@ -351,19 +280,13 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
               borderRadius: '0.375rem'
             }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.25rem' }}>
+                <label style={inputLabel}>
                   {t('contracts.type')}
                 </label>
                 <select
                   value={itemType}
                   onChange={(e) => setItemType(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '0.25rem',
-                    fontSize: '0.875rem'
-                  }}
+                  style={selectField}
                 >
                   <option value="receivable">{t('contracts.receivables')}</option>
                   <option value="payable">{t('contracts.payables')}</option>
@@ -371,7 +294,7 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
               </div>
               
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.25rem' }}>
+                <label style={inputLabel}>
                   {t('contracts.itemDescription')}
                 </label>
                 <input
@@ -379,30 +302,18 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
                   value={itemName}
                   onChange={(e) => setItemName(e.target.value)}
                   placeholder={t('contracts.enterItemName')}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '0.25rem',
-                    fontSize: '0.875rem'
-                  }}
+                  style={inputField}
                 />
               </div>
               
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.25rem' }}>
+                <label style={inputLabel}>
                   {t('contracts.itemCurrency')}
                 </label>
                 <select
                   value={itemCurrency}
                   onChange={(e) => setItemCurrency(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '0.25rem',
-                    fontSize: '0.875rem'
-                  }}
+                  style={selectField}
                   disabled={currenciesLoading}
                 >
                   {currenciesLoading ? (
@@ -418,7 +329,7 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
               </div>
               
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.25rem' }}>
+                <label style={inputLabel}>
                   {t('contracts.itemAmount')}
                 </label>
                 <input
@@ -427,29 +338,14 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
                   onChange={(e) => setItemAmount(e.target.value)}
                   placeholder="0.00"
                   step="0.01"
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '0.25rem',
-                    fontSize: '0.875rem'
-                  }}
+                  style={inputField}
                 />
               </div>
               
               <button
                 type="button"
                 onClick={addItem}
-                style={{
-                  padding: '0.5rem 1rem',
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '0.25rem',
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
-                  alignSelf: 'end'
-                }}
+                style={buttonPrimary}
               >
                 {t('contracts.addItem')}
               </button>
@@ -539,14 +435,7 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
                       <button
                         type="button"
                         onClick={() => removeItem('payable', item.id)}
-                        style={{
-                          padding: '0.25rem',
-                          color: '#ef4444',
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          fontSize: '0.875rem'
-                        }}
+                        style={deleteButton}
                         title={t('contracts.delete')}
                       >
                         <Trash2 size={16} />
@@ -558,32 +447,17 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
             )}
           </div>
 
-          <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+          <div style={modalFooter}>
             <button
               type="button"
               onClick={onClose}
-              style={{
-                padding: '0.5rem 1rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '0.375rem',
-                backgroundColor: 'white',
-                fontSize: '0.875rem',
-                cursor: 'pointer'
-              }}
+              style={buttonSecondary}
             >
               {t('common.cancel')}
             </button>
             <button
               type="submit"
-              style={{
-                padding: '0.5rem 1rem',
-                border: 'none',
-                borderRadius: '0.375rem',
-                backgroundColor: '#3b82f6',
-                color: 'white',
-                fontSize: '0.875rem',
-                cursor: 'pointer'
-              }}
+              style={buttonPrimary}
             >
               {isEditing ? t('contracts.update') : t('contracts.create')}
             </button>

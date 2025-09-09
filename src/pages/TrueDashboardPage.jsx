@@ -4,6 +4,7 @@ import { Doughnut, Bar } from 'react-chartjs-2';
 import { t } from '../utils/i18n';
 import contractService from '../services/contractService';
 import currencyService from '../services/currencyService';
+import showErrorToast from '../utils/errorToast';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
@@ -115,6 +116,7 @@ const TrueDashboardPage = () => {
       setRecentContracts(sortedContracts);
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
+      showErrorToast('获取仪表板统计数据失败: ' + error.message);
     } finally {
       setLoading(false);
     }

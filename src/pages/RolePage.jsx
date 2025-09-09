@@ -5,6 +5,7 @@ import roleService from '../services/roleService';
 import RoleStats from '../components/Role/RoleStats';
 import RoleTable from '../components/Role/RoleTable';
 import RoleFormModal from '../components/Role/RoleFormModal';
+import showErrorToast from '../utils/errorToast';
 
 const RoleManagementPage = () => {
   const [roles, setRoles] = useState([]);
@@ -35,6 +36,7 @@ const RoleManagementPage = () => {
       setRoles(data);
     } catch (error) {
       console.error('获取角色列表失败:', error);
+      showErrorToast('获取角色列表失败: ' + error.message);
       setError('获取角色列表失败: ' + error.message);
     } finally {
       setLoading(false);
@@ -64,7 +66,7 @@ const RoleManagementPage = () => {
 
   const handleAddRole = async () => {
     if (!formData.name.trim()) {
-      alert('请输入角色名称');
+      showErrorToast('请输入角色名称');
       return;
     }
 
@@ -79,13 +81,14 @@ const RoleManagementPage = () => {
       setShowAddModal(false);
       setFormData({ name: '', description: '', permissions: [] });
     } catch (error) {
-      alert('创建角色失败: ' + error.message);
+      console.error('创建角色失败:', error);
+      showErrorToast('创建角色失败: ' + error.message);
     }
   };
 
   const handleEditRole = async () => {
     if (!formData.name.trim()) {
-      alert('请输入角色名称');
+      showErrorToast('请输入角色名称');
       return;
     }
 
@@ -101,18 +104,19 @@ const RoleManagementPage = () => {
       setSelectedRole(null);
       setFormData({ name: '', description: '', permissions: [] });
     } catch (error) {
-      alert('更新角色失败: ' + error.message);
+      console.error('更新角色失败:', error);
+      showErrorToast('更新角色失败: ' + error.message);
     }
   };
 
   const handleDeleteRole = async (id) => {
     const role = roles.find(r => r.id === id);
     if (role.isSystem) {
-      alert('系统预置角色不能删除');
+      showErrorToast('系统预置角色不能删除');
       return;
     }
     if (role.userCount > 0) {
-      alert('该角色下还有用户，不能删除');
+      showErrorToast('该角色下还有用户，不能删除');
       return;
     }
 
@@ -121,7 +125,8 @@ const RoleManagementPage = () => {
         await roleService.deleteRole(id);
         setRoles(roles.filter(role => role.id !== id));
       } catch (error) {
-        alert('删除角色失败: ' + error.message);
+        console.error('删除角色失败:', error);
+        showErrorToast('删除角色失败: ' + error.message);
       }
     }
   };

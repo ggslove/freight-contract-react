@@ -5,6 +5,7 @@ import userService from '../services/userService';
 import UserStats from '../components/User/UserStats';
 import UserTable from '../components/User/UserTable';
 import UserFormModal from '../components/User/UserFormModal';
+import showErrorToast from '../utils/errorToast';
 
 const UserManagementPage = () => {
   const [users, setUsers] = useState([]);
@@ -40,6 +41,7 @@ const UserManagementPage = () => {
       setUsers(data);
     } catch (error) {
       console.error(t('users.fetchUsersFailed'), error);
+      showErrorToast(t('users.fetchUsersFailed') + ': ' + error.message);
       // 避免重复显示相同的错误
       if (error.message !== (error.message || '').toString()) {
         setError(t('users.fetchUsersFailed') + ': ' + error.message);
@@ -96,7 +98,7 @@ const UserManagementPage = () => {
 
   const handleAddUser = async () => {
     if (formData.password !== formData.confirmPassword) {
-      alert(t('users.passwordMismatch'));
+      showErrorToast(t('users.passwordMismatch'));
       return;
     }
 
@@ -117,11 +119,11 @@ const UserManagementPage = () => {
         setShowAddModal(false);
         setFormData({ username: '', realName: '', email: '', phone: '', role: '', status: '', password: '', confirmPassword: '' });
       } else {
-        alert(t('users.createUserFailedEmpty'));
+        showErrorToast(t('users.createUserFailedEmpty'));
       }
     } catch (error) {
-      // /创建用户失败: Failed to fetch
-      alert(t('users.createUserFailed') + ': ' + error.message);
+      console.error('创建用户失败:', error);
+      showErrorToast(t('users.createUserFailed') + ': ' + error.message);
     }
   };
 
@@ -144,11 +146,11 @@ const UserManagementPage = () => {
         setSelectedUser(null);
         setFormData({ username: '', realName: '', email: '', phone: '', role: '', status: '', password: '', confirmPassword: '' });
       } else {
-        alert(t('users.updateUserFailedEmpty') + ': 未能获取更新后的用户数据');
+        showErrorToast(t('users.updateUserFailedEmpty') + ': 未能获取更新后的用户数据');
       }
     } catch (error) {
-      console.error('更新用户失败11:', error);
-      alert(t('users.updateUserFailed') + ': ' + (error.message || '未知错误'));
+      console.error('更新用户失败:', error);
+      showErrorToast(t('users.updateUserFailed') + ': ' + (error.message || '未知错误'));
     }
   };
 
@@ -158,7 +160,8 @@ const UserManagementPage = () => {
         await userService.deleteUser(id);
         setUsers(users.filter(user => user.id !== id));
       } catch (error) {
-        alert(t('users.deleteUserFailed') + ': ' + error.message);
+        console.error('删除用户失败:', error);
+        showErrorToast(t('users.deleteUserFailed') + ': ' + error.message);
       }
     }
   };
@@ -171,7 +174,8 @@ const UserManagementPage = () => {
       const updatedUser = await userService.updateUserStatus(id, newStatus);
       setUsers(users.map(u => u.id === id ? updatedUser : u));
     } catch (error) {
-      alert(t('users.updateUserStatusFailed') + ': ' + error.message);
+      console.error('更新用户状态失败:', error);
+      showErrorToast(t('users.updateUserStatusFailed') + ': ' + error.message);
     }
   };
 

@@ -2,15 +2,6 @@ import React from 'react';
 import { Edit, Trash2 } from 'lucide-react';
 import { t } from '../../utils/i18n';
 
-const formatCurrency = (amount, currency = 'CNY') => {
-  if (isNaN(amount)) return '¥0.00';
-  
-  const symbol = currency === 'USD' ? '$' : 
-                 currency === 'EUR' ? '€' : 
-                 currency === 'GBP' ? '£' : '¥';
-  
-  return `${symbol}${parseFloat(amount).toFixed(2)}`;
-};
 
 const ContractTable = ({ contracts, onEdit, onDelete }) => {
   return (
@@ -191,7 +182,7 @@ const ContractTable = ({ contracts, onEdit, onDelete }) => {
                 }}>
                   <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                     <button
-                      onClick={() => onEdit(contract)}
+                      onClick={() => onEdit(contract.id)}
                       style={{
                         padding: '0.5rem',
                         border: 'none',

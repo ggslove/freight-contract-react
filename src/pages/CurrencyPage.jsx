@@ -4,6 +4,7 @@ import currencyService from '../services/currencyService';
 import StatsCard from '../components/Common/StatsCard';
 import CurrencyTable from '../components/Currency/CurrencyTable';
 import CurrencyFormModal from '../components/Currency/CurrencyFormModal';
+import showErrorToast from '../utils/errorToast';
 
 const CurrencyPage = () => {
   const [currencies, setCurrencies] = useState([]);
@@ -17,7 +18,8 @@ const CurrencyPage = () => {
       const data = await currencyService.getAllCurrencies();
       setCurrencies(data);
     } catch (error) {
-      alert(t('currency.fetchError'));
+      console.error('获取货币列表失败:', error);
+      showErrorToast(t('currency.fetchError'));
     } finally {
       setLoading(false);
     }
@@ -51,7 +53,8 @@ const CurrencyPage = () => {
       setShowAddModal(false);
       fetchCurrencies();
     } catch (error) {
-      alert(error.message || t('currency.createError'));
+      console.error('创建货币失败:', error);
+      showErrorToast(error.message || t('currency.createError'));
     }
   };
 
@@ -64,7 +67,8 @@ const CurrencyPage = () => {
       setEditingCurrency(null);
       fetchCurrencies();
     } catch (error) {
-      alert(error.message || t('currency.updateError'));
+      console.error('更新货币失败:', error);
+      showErrorToast(error.message || t('currency.updateError'));
     }
   };
 
@@ -77,7 +81,8 @@ const CurrencyPage = () => {
       alert(t('currency.statusUpdateSuccess'));
       fetchCurrencies();
     } catch (error) {
-      alert(t('currency.statusUpdateError'));
+      console.error('更新货币状态失败:', error);
+      showErrorToast(t('currency.statusUpdateError'));
     }
   };
 
@@ -87,7 +92,8 @@ const CurrencyPage = () => {
       alert(t('currency.deleteSuccess'));
       fetchCurrencies();
     } catch (error) {
-      alert(t('currency.deleteError'));
+      console.error('删除货币失败:', error);
+      showErrorToast(t('currency.deleteError'));
     }
   };
 

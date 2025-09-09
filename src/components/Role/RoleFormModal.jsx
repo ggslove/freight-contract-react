@@ -1,5 +1,18 @@
 import React from 'react';
 import { t } from '../../utils/i18n';
+import { 
+  modalOverlay, 
+  modalContainer, 
+  modalHeader, 
+  modalCloseButton, 
+  formContainer, 
+  formGrid, 
+  inputLabel, 
+  inputField, 
+  textareaField, 
+  buttonPrimary, 
+  buttonSecondary 
+} from '../../styles/formStyle';
 
 const RoleFormModal = ({ 
   isOpen, 
@@ -7,9 +20,29 @@ const RoleFormModal = ({
   onSubmit, 
   formData, 
   setFormData, 
-  isEditMode = false
+  isEditMode = false,
+  permissions = [],
+  loading = false
 }) => {
+
   if (!isOpen) return null;
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handlePermissionChange = (permissionId) => {
+    const permissions = formData.permissions?.includes(permissionId)
+      ? formData.permissions.filter(id => id !== permissionId)
+      : [...(formData.permissions || []), permissionId];
+    setFormData(prev => ({ ...prev, permissions }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
 
   const allPermissions = [
     '系统管理', '用户管理', '角色管理', '合同管理', '财务管理',
@@ -30,112 +63,127 @@ const RoleFormModal = ({
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '2rem',
-        borderRadius: '0.5rem',
-        width: '100%',
-        maxWidth: '500px',
-        maxHeight: '80vh',
-        overflowY: 'auto'
-      }}>
-        <h2 style={{ marginTop: 0 }}>
-          {isEditMode ? t('system.editRole') : t('system.addRole')}
-        </h2>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div>
-            <label>{t('system.roleName')}</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #d9d9d9',
-                borderRadius: '0.25rem',
-                marginTop: '0.25rem'
-              }}
-            />
+    <div style={modalOverlay}>
+      <div style={modalContainer}>
+        <div style={modalHeader}>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: 0 }}>
+            {isEditMode ? t('role.editRole') : t('role.addRole')}
+          </h3>
+          <button
+            onClick={onClose}
+            style={modalCloseButton}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} style={formContainer}>
+          <div style={formGrid}>
+            <div>
+              <label style={inputLabel}>{t('role.name')}</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name || ''}
+                onChange={handleChange}
+                style={inputField}
+                required
+              />
+            </div>
+
+            <div>
+              <label style={inputLabel}>{t('role.code')}</label>
+              <input
+                type="text"
+                name="code"
+                value={formData.code || ''}
+                onChange={handleChange}
+                style={inputField}
+                required
+              />
+            </div>
+
+            <div>
+              <label style={inputLabel}>{t('role.level')}</label>
+              <input
+                type="number"
+                name="level"
+                value={formData.level || ''}
+                onChange={handleChange}
+                style={inputField}
+                required
+                min="1"
+                max="100"
+              />
+            </div>
+
+            <div>
+              <label style={inputLabel}>{t('role.status')}</label>
+              <select
+                name="status"
+                value={formData.status || 'ACTIVE'}
+                onChange={handleChange}
+                style={inputField}
+              >
+                <option value="ACTIVE">{t('common.active')}</option>
+                <option value="INACTIVE">{t('common.inactive')}</option>
+              </select>
+            </div>
           </div>
-          
+
           <div>
-            <label>{t('system.roleDescription')}</label>
+            <label style={inputLabel}>{t('role.description')}</label>
             <textarea
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #d9d9d9',
-                borderRadius: '0.25rem',
-                marginTop: '0.25rem',
-                minHeight: '80px',
-                resize: 'vertical'
-              }}
+              name="description"
+              value={formData.description || ''}
+              onChange={handleChange}
+              style={textareaField}
+              rows="3"
             />
           </div>
-          
+
           <div>
-            <label>{t('system.permissions')}</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
-              {allPermissions.map(permission => (
-                <label key={permission} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            <label style={inputLabel}>{t('role.permissions')}</label>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+              gap: '0.75rem',
+              marginTop: '0.5rem'
+            }}>
+              {permissions.map(permission => (
+                <label key={permission.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <input
                     type="checkbox"
-                    checked={formData.permissions.includes(permission)}
-                    onChange={() => togglePermission(permission)}
+                    checked={formData.permissions?.includes(permission.id) || false}
+                    onChange={() => handlePermissionChange(permission.id)}
+                    style={{ margin: 0 }}
                   />
-                  <span>{permission}</span>
+                  <span style={{ fontSize: '0.875rem' }}>{permission.name}</span>
                 </label>
               ))}
             </div>
           </div>
-        </div>
-        
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
-          <button
-            onClick={onClose}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: 'white',
-              color: '#666',
-              border: '1px solid #d9d9d9',
-              borderRadius: '0.375rem',
-              cursor: 'pointer',
-              fontSize: '0.875rem'
-            }}
-          >
-            {t('common.cancel')}
-          </button>
-          <button
-            onClick={onSubmit}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#1890ff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '0.375rem',
-              cursor: 'pointer',
-              fontSize: '0.875rem'
-            }}
-          >
-            {isEditMode ? t('system.confirmEdit') : t('system.confirmAdd')}
-          </button>
-        </div>
+
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
+            <button
+              type="button"
+              onClick={onClose}
+              style={buttonSecondary}
+            >
+              {t('common.cancel')}
+            </button>
+            <button
+              type="submit"
+              style={buttonPrimary}
+              disabled={loading}
+            >
+              {loading ? t('common.saving') : (isEditMode ? t('common.update') : t('common.add'))}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

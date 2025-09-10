@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { t } from '../utils/i18n';
 import contractService from '../services/contractService';
-import StatsCard from '../components/Common/StatsCard';
+import StatsCard from '../components/ui/StatsCard';
 import ContractTable from '../components/Contracts/ContractTable';
 import ContractForm from '../components/Contracts/ContractForm';
 import { filterContracts, getInitialFormData } from '../components/Contracts/contractUtils';

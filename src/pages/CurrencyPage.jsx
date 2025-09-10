@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { t } from '../utils/i18n';
 import currencyService from '../services/currencyService';
-import StatsCard from '../components/Common/StatsCard';
+import StatsCard from '../components/ui/StatsCard';
 import CurrencyTable from '../components/Currency/CurrencyTable';
 import CurrencyForm from '../components/Currency/CurrencyForm';
 import showErrorToast from '../utils/errorToast';

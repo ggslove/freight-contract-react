@@ -1,7 +1,7 @@
 import React from 'react';
 import { Users, User } from 'lucide-react';
 import { t } from '../../utils/i18n';
-import StatsCard from '../Common/StatsCard';
+import StatsCard from '../ui/StatsCard';
 
 const UserStats = ({ users }) => {
   const activeUsers = users.filter(user => user.status === 'ENABLED').length;

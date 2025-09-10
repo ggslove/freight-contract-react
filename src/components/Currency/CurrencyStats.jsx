@@ -1,7 +1,7 @@
 import React from 'react';
 import { DollarSign, CheckCircle, XCircle, Globe } from 'lucide-react';
 import { t } from '../../utils/i18n';
-import StatsCard from '../Common/StatsCard';
+import StatsCard from '../ui/StatsCard';
 
 const CurrencyStats = ({ currencies }) => {
   const activeCurrencies = currencies.filter(c => c.isActive).length;

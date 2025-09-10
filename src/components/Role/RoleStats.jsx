@@ -1,7 +1,7 @@
 import React from 'react';
 import { Shield } from 'lucide-react';
 import { t } from '../../utils/i18n';
-import StatsCard from '../Common/StatsCard';
+import StatsCard from '../ui/StatsCard';
 
 const RoleStats = ({ roles }) => {
   const systemRoles = roles.filter(role => role.isSystem).length;

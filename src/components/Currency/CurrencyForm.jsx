@@ -15,14 +15,19 @@ import {
   textareaField
 } from '../../styles/formStyle';
 
-const CurrencyFormModal = ({ 
-  isOpen, 
+const CurrencyForm = ({ 
   onClose, 
   onSubmit, 
   isEditMode = false,
   editingCurrency = null,
+  showModal = false,
   loading = false
 }) => {
+
+   if (!showModal) {
+    return null;
+  }
+
   const [formData, setFormData] = useState({
     code: '',
     name: '',
@@ -30,7 +35,7 @@ const CurrencyFormModal = ({
     exchangeRate: 1.0,
     isActive: true
   });
-
+ 
   useEffect(() => {
     if (isEditMode && editingCurrency) {
       setFormData({
@@ -49,7 +54,7 @@ const CurrencyFormModal = ({
         isActive: true
       });
     }
-  }, [isOpen, isEditMode, editingCurrency]);
+  }, [ isEditMode, editingCurrency]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -64,7 +69,6 @@ const CurrencyFormModal = ({
     onSubmit(formData);
   };
 
-  if (!isOpen) return null;
 
   return (
     <div style={modalOverlay}>
@@ -176,4 +180,4 @@ const CurrencyFormModal = ({
   );
 };
 
-export default CurrencyFormModal;
+export default CurrencyForm;

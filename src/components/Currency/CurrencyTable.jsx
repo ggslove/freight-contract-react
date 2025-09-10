@@ -72,7 +72,7 @@ const CurrencyTable = ({ currencies, onEdit, onDelete, onToggleStatus, loading }
                     {currency.isActive ? '禁用' : '启用'}
                   </button>
                   <button
-                    onClick={() => onEdit(currency)}
+                    onClick={() => onEdit(currency.id)}
                     style={{
                       padding: '0.375rem 0.75rem',
                       backgroundColor: '#1890ff',

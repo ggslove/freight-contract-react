@@ -16,16 +16,16 @@ import {
   buttonSecondary 
 } from '../../styles/formStyle';
 
-const UserFormModal = ({ 
-  isOpen, 
+const UserForm = ({ 
   onClose, 
   onSubmit, 
   formData, 
   setFormData, 
   isEditMode = false,
+  showModal=false,
   roles
 }) => {
-  if (!isOpen) return null;
+  if (!showModal) return null;
 
   const roleOptions = [
     { value: 'ADMIN', label: t('users.systemAdmin') },
@@ -206,4 +206,4 @@ const UserFormModal = ({
   );
 };
 
-export default UserFormModal;
+export default UserForm;

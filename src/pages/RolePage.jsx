@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
 import { t } from '../utils/i18n';
+import { Plus } from 'lucide-react';
 import roleService from '../services/roleService';
-import RoleStats from '../components/Role/RoleStats';
 import RoleTable from '../components/Role/RoleTable';
-import RoleFormModal from '../components/Role/RoleFormModal';
+import RoleForm from '../components/Role/RoleForm';
+import RoleStats from '../components/Role/RoleStats';
 import showErrorToast from '../utils/errorToast';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const RoleManagementPage = () => {
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -78,7 +79,7 @@ const RoleManagementPage = () => {
       });
       
       setRoles([...roles, newRole]);
-      setShowAddModal(false);
+      setShowForm(false);
       setFormData({ name: '', description: '', permissions: [] });
     } catch (error) {
       console.error('创建角色失败:', error);
@@ -185,7 +186,7 @@ const RoleManagementPage = () => {
         </div>
         
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={() => { setShowForm(true); setIsEditMode(false); setSelectedRole(null); }}
           className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
         >
           <Plus size={16} className="mr-2" />
@@ -210,36 +211,18 @@ const RoleManagementPage = () => {
           formatDate={(dateString) => new Date(dateString).toLocaleString('zh-CN')}
         />
       </div>
-
-      {/* Role Form Modal */}
-      <RoleFormModal
-        isOpen={showAddModal}
-        onClose={() => {
-          setShowAddModal(false);
-          setFormData({ name: '', description: '', permissions: [] });
-        }}
-        onSubmit={handleAddRole}
-        formData={formData}
-        setFormData={setFormData}
-        allPermissions={allPermissions}
-        togglePermission={togglePermission}
-        isEditMode={false}
-      />
-
-      <RoleFormModal
-        isOpen={showEditModal}
-        onClose={() => {
-          setShowEditModal(false);
-          setSelectedRole(null);
-          setFormData({ name: '', description: '', permissions: [] });
-        }}
-        onSubmit={handleEditRole}
-        formData={formData}
-        setFormData={setFormData}
-        allPermissions={allPermissions}
-        togglePermission={togglePermission}
-        isEditMode={true}
-      />
+      <ErrorBoundary>
+        <RoleForm
+          onSubmit={isEditMode ? handleEditRole : handleAddRole}
+          isEditMode={isEditMode}
+          editingRole={selectedRole}
+          onCancel={() => {
+            setShowForm(false);
+            setFormData({ name: '', description: '', permissions: [] });
+            setSelectedRole(null);
+          }}
+        />
+      </ErrorBoundary>
     </div>
   );
 };

@@ -3,13 +3,14 @@ import { t } from '../utils/i18n';
 import currencyService from '../services/currencyService';
 import StatsCard from '../components/Common/StatsCard';
 import CurrencyTable from '../components/Currency/CurrencyTable';
-import CurrencyFormModal from '../components/Currency/CurrencyFormModal';
+import CurrencyForm from '../components/Currency/CurrencyForm';
 import showErrorToast from '../utils/errorToast';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const CurrencyPage = () => {
   const [currencies, setCurrencies] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [editingCurrency, setEditingCurrency] = useState(null);
 
   const fetchCurrencies = async () => {
@@ -50,7 +51,7 @@ const CurrencyPage = () => {
     try {
       await currencyService.createCurrency(values);
       alert(t('currency.createSuccess'));
-      setShowAddModal(false);
+      setShowModal(false);
       fetchCurrencies();
     } catch (error) {
       console.error('创建货币失败:', error);
@@ -97,12 +98,14 @@ const CurrencyPage = () => {
     }
   };
 
-  const openEditModal = (currency) => {
+  const openEditModal = async(id) => {
+    const currency = currencyService.getCurrencyById(id);
     setEditingCurrency(currency);
+    setShowModal(true);
   };
 
-  const closeModal = () => {
-    setShowAddModal(false);
+  const closeForm = () => {
+    setShowModal(false);
     setEditingCurrency(null);
   };
 
@@ -125,7 +128,7 @@ const CurrencyPage = () => {
         </div>
         
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={() => setShowModal(true)}
           className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,17 +177,18 @@ const CurrencyPage = () => {
           onDelete={handleDeleteCurrency}
         />
       </div>
-
-      {/* Currency Form Modal */}
-      <CurrencyFormModal
-        isOpen={showAddModal || !!editingCurrency}
-        onClose={closeModal}
-        onSubmit={editingCurrency ? handleUpdateCurrency : handleAddCurrency}
-        isEditMode={!!editingCurrency}
-        editingCurrency={editingCurrency}
-      />
-    </div>
-  );
+      
+      <ErrorBoundary>
+        <CurrencyForm
+          onSubmit={editingCurrency ? handleUpdateCurrency : handleAddCurrency}
+          isEditMode={!!editingCurrency}
+          editingCurrency={editingCurrency}
+          onClose={closeForm}
+          showModal={showModal}
+        />
+        </ErrorBoundary>
+      </div>
+      )
 };
 
 export default CurrencyPage;

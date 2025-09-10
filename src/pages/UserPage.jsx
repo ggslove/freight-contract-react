@@ -4,17 +4,17 @@ import { t } from '../utils/i18n';
 import userService from '../services/userService';
 import UserStats from '../components/User/UserStats';
 import UserTable from '../components/User/UserTable';
-import UserFormModal from '../components/User/UserFormModal';
+import UserForm from '../components/User/UserForm';
 import showErrorToast from '../utils/errorToast';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const UserManagementPage = () => {
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [roles, setRoles] = useState([]);
+  const [loading, setLoading] = useState(false);
+ const [showModal, setShowModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
   const [error, setError] = useState(null);
-
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
   const [formData, setFormData] = useState({
     username: '',
     realName: '',
@@ -24,13 +24,6 @@ const UserManagementPage = () => {
     password: '',
     confirmPassword: ''
   });
-
-  const roles = [
-    { value: 'ADMIN', label: t('users.systemAdmin') },
-    { value: 'MANAGER', label: t('users.businessManager') },
-    { value: 'FINANCE', label: t('users.financeStaff') },
-    { value: 'USER', label: t('users.normalUser') }
-  ];
 
   const fetchUsers = async () => {
     try {
@@ -96,61 +89,29 @@ const UserManagementPage = () => {
     return new Date(dateString).toLocaleString();
   };
 
-  const handleAddUser = async () => {
-    if (formData.password !== formData.confirmPassword) {
-      showErrorToast(t('users.passwordMismatch'));
-      return;
-    }
-
+  const handleAddUser = async (values) => {
     try {
-      const newUser = await userService.createUser({
-        username: formData.username,
-        realName: formData.realName,
-        email: formData.email,
-        phone: formData.phone,
-        role: formData.role,
-        password: formData.password,
-        status: 'ENABLED'
-      });
-      console.log("---------------> newUser:", newUser);
-      
-      if (newUser) {
-        setUsers([...users, newUser]);
-        setShowAddModal(false);
-        setFormData({ username: '', realName: '', email: '', phone: '', role: '', status: '', password: '', confirmPassword: '' });
-      } else {
-        showErrorToast(t('users.createUserFailedEmpty'));
-      }
+      await userService.createUser(values);
+      alert(t('users.createSuccess'));
+      setShowModal(false);
+      fetchUsers();
     } catch (error) {
       console.error('创建用户失败:', error);
-      showErrorToast(t('users.createUserFailed') + ': ' + error.message);
+      showErrorToast(error.message || t('users.createError'));
     }
   };
 
-  const handleEditUser = async (e) => {
-    e.preventDefault();//这个必须要添加
+  const handleUpdateUser = async (values) => {
+    if (!editingUser) return;
+    
     try {
-      const updatedUser = await userService.updateUser(selectedUser.id, {
-        username: formData.username,
-        realName: formData.realName,
-        email: formData.email,
-        phone: formData.phone,
-        role: formData.role,
-        status: formData.status,
-        ...(formData.password && { password: formData.password })
-      });
-     
-      if (updatedUser) {
-        setUsers(users.map(user => user.id === selectedUser.id ? updatedUser : user));
-        setShowEditModal(false);
-        setSelectedUser(null);
-        setFormData({ username: '', realName: '', email: '', phone: '', role: '', status: '', password: '', confirmPassword: '' });
-      } else {
-        showErrorToast(t('users.updateUserFailedEmpty') + ': 未能获取更新后的用户数据');
-      }
+      await userService.updateUser(editingUser.id, values);
+      alert(t('users.updateSuccess'));
+      setShowModal(false);
+      fetchUsers();
     } catch (error) {
       console.error('更新用户失败:', error);
-      showErrorToast(t('users.updateUserFailed') + ': ' + (error.message || '未知错误'));
+      showErrorToast(error.message || t('users.updateError'));
     }
   };
 
@@ -180,18 +141,8 @@ const UserManagementPage = () => {
   };
 
   const openEditModal = (user) => {
-    setSelectedUser(user);
-    setFormData({
-      username: user.username,
-      realName: user.realName || '',
-      email: user.email,
-      phone: user.phone || '',
-      role: user.role,
-      status: user.status || 'ENABLED',
-      password: '',
-      confirmPassword: ''
-    });
-    setShowEditModal(true);
+    setEditingUser(user);
+    setShowModal(true);
   };
 
   if (loading) {
@@ -224,7 +175,7 @@ const UserManagementPage = () => {
         </div>
         
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={() => setShowModal(true)}
           className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
         >
           <Plus size={16} className="mr-2" />
@@ -252,34 +203,17 @@ const UserManagementPage = () => {
           formatDate={formatDate}
         />
       </div>
-
-      {/* User Form Modal */}
-      <UserFormModal
-        isOpen={showAddModal}
-        onClose={() => {
-          setShowAddModal(false);
-          setFormData({ username: '', realName: '', email: '', phone: '', role: '', status: '', password: '', confirmPassword: '' });
-        }}
-        onSubmit={handleAddUser}
-        formData={formData}
-        setFormData={setFormData}
-        roles={roles}
-        isEditMode={false}
-      />
-
-      <UserFormModal
-        isOpen={showEditModal}
-        onClose={() => {
-          setShowEditModal(false);
-          setSelectedUser(null);
-          setFormData({ username: '', realName: '', email: '', phone: '', role: '', status: '', password: '', confirmPassword: '' });
-        }}
-        onSubmit={handleEditUser}
-        formData={formData}
-        setFormData={setFormData}
-        roles={roles}
-        isEditMode={true}
-      />
+      <ErrorBoundary>
+        <UserForm
+            onSubmit={editingUser ? handleUpdateUser : handleAddUser}
+            formData={formData}
+            setFormData={setFormData}
+            isEditMode={!!editingUser}
+            roles={roles}
+            showModal={showModal}
+            onClose={() => { setShowModal(false); setEditingUser(null); }}
+          />
+      </ErrorBoundary>
     </div>
   );
 };

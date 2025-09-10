@@ -14,7 +14,7 @@ import {
   buttonSecondary 
 } from '../../styles/formStyle';
 
-const RoleFormModal = ({ 
+const RoleForm = ({ 
   isOpen, 
   onClose, 
   onSubmit, 
@@ -189,4 +189,4 @@ const RoleFormModal = ({
   );
 };
 
-export default RoleFormModal;
+export default RoleForm;

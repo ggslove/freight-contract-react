@@ -1,57 +1,50 @@
 import React from 'react';
 import { Shield } from 'lucide-react';
 import { t } from '../../utils/i18n';
+import StatsCard from '../Common/StatsCard';
 
 const RoleStats = ({ roles }) => {
   const systemRoles = roles.filter(role => role.isSystem).length;
   const customRoles = roles.filter(role => !role.isSystem).length;
+  const activeRoles = roles.filter(role => role.isActive).length;
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-      <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-          <div style={{ padding: '0.5rem', backgroundColor: '#e6f7ff', borderRadius: '0.5rem' }}>
-            <Shield size={20} style={{ color: '#1890ff' }} />
-          </div>
-          <div>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', margin: 0 }}>{t('system.totalRoles')}</h3>
-            <p style={{ color: '#666', fontSize: '0.875rem', margin: 0 }}>{t('system.totalRolesDesc')}</p>
-          </div>
-        </div>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1890ff' }}>
-          {roles.length}
-        </h2>
-      </div>
+      <StatsCard
+        title={t('system.totalRoles')}
+        value={roles.length}
+        description={t('system.totalRolesDesc')}
+        icon={<Shield size={20} />}
+        color="#1890ff"
+        bgColor="#e6f7ff"
+      />
       
-      <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-          <div style={{ padding: '0.5rem', backgroundColor: '#fff7e6', borderRadius: '0.5rem' }}>
-            <Shield size={20} style={{ color: '#faad14' }} />
-          </div>
-          <div>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', margin: 0 }}>{t('system.systemRoles')}</h3>
-            <p style={{ color: '#666', fontSize: '0.875rem', margin: 0 }}>{t('system.systemRolesDesc')}</p>
-          </div>
-        </div>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#faad14' }}>
-          {systemRoles}
-        </h2>
-      </div>
+      <StatsCard
+        title={t('system.systemRoles')}
+        value={systemRoles}
+        description={t('system.systemRolesDesc')}
+        icon={<Shield size={20} />}
+        color="#faad14"
+        bgColor="#fff7e6"
+      />
       
-      <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-          <div style={{ padding: '0.5rem', backgroundColor: '#f6ffed', borderRadius: '0.5rem' }}>
-            <Shield size={20} style={{ color: '#52c41a' }} />
-          </div>
-          <div>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', margin: 0 }}>{t('system.customRoles')}</h3>
-            <p style={{ color: '#666', fontSize: '0.875rem', margin: 0 }}>{t('system.customRolesDesc')}</p>
-          </div>
-        </div>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#52c41a' }}>
-          {customRoles}
-        </h2>
-      </div>
+      <StatsCard
+        title={t('system.customRoles')}
+        value={customRoles}
+        description={t('system.customRolesDesc')}
+        icon={<Shield size={20} />}
+        color="#52c41a"
+        bgColor="#f6ffed"
+      />
+
+      <StatsCard
+        title={t('system.activeRoles')}
+        value={activeRoles}
+        description={t('system.activeRolesDesc')}
+        icon={<Shield size={20} />}
+        color="#0ea5e9"
+        bgColor="#f0f9ff"
+      />
     </div>
   );
 };

@@ -105,7 +105,6 @@ const ContractsPage = () => {
   };
 
   const handleEdit = async (id) => {
-    console.log("----------> %o",id)
     try {
       // 获取完整的合同详情
       const contract = await contractService.getContractById(id);

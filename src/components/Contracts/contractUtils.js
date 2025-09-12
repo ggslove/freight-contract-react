@@ -1,13 +1,3 @@
-export const formatCurrency = (amount, currency = 'CNY') => {
-  if (isNaN(amount)) return '¥0.00';
-  
-  const symbol = currency === 'USD' ? '$' : 
-                 currency === 'EUR' ? '€' : 
-                 currency === 'GBP' ? '£' : '¥';
-  
-  return `${symbol}${parseFloat(amount).toFixed(2)}`;
-};
-
 export const formatDate = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);

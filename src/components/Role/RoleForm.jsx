@@ -44,12 +44,6 @@ const RoleForm = ({
     onSubmit(formData);
   };
 
-  const allPermissions = [
-    '系统管理', '用户管理', '角色管理', '合同管理', '财务管理',
-    '币种管理', '客户管理', '报表查看', '数据导出', '系统配置',
-    '合同创建', '合同编辑', '合同删除', '合同审核', '付款管理',
-    '收款管理', '发票管理', '统计分析', '日志查看'
-  ];
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));

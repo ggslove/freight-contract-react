@@ -5,9 +5,9 @@ import StatsCard from '../components/ui/StatsCard';
 import ContractTable from '../components/Contracts/ContractTable';
 import ContractForm from '../components/Contracts/ContractForm';
 import { filterContracts, getInitialFormData } from '../components/Contracts/contractUtils';
-import ErrorBoundary from '../components/ErrorBoundary';
 import showErrorToast from '../utils/errorToast';
 import showSuccessToast from '../utils/successToast';
+import { safeAsync } from '../utils/globalErrorHandler';
 
 
 
@@ -21,17 +21,12 @@ const ContractsPage = () => {
 
   // 获取合同列表
   const fetchContracts = async () => {
-    try {
-      setLoading(true);
+    setLoading(true);
+    await safeAsync(async () => {
       const contracts = await contractService.getAllContracts();
       setContracts(contracts);
-    } catch (err) {
-      console.error('获取合同列表失败:', err);
-      showErrorToast(`获取合同列表失败: ${err.message}`);
-      // 如果后端连接失败，使用模拟数据
-    } finally {
-      setLoading(false);
-    }
+    }, t('contracts.fetchError'));
+    setLoading(false);
   };
 
   // 合并初始加载和语言变化监听
@@ -57,7 +52,7 @@ const ContractsPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
+    await safeAsync(async () => {
       // 使用解构赋值移除receivableItems和payableItems
       const { receivables, payables,...contractInput } = formData;
       // 构建应收应付数据
@@ -91,10 +86,7 @@ const ContractsPage = () => {
       }
       await fetchContracts();
       handleCloseModal();
-    } catch (err) {
-      console.error('保存合同失败:', err);
-      showErrorToast(`保存失败: ${err.message}`);
-    }
+    }, t('contracts.saveError'));
   };
 
   const handleNewModal = () => {
@@ -105,7 +97,7 @@ const ContractsPage = () => {
   };
 
   const handleEdit = async (id) => {
-    try {
+    await safeAsync(async () => {
       // 获取完整的合同详情
       const contract = await contractService.getContractById(id);
       setFormData({
@@ -114,21 +106,15 @@ const ContractsPage = () => {
         payables: contract.payables || []
       });
       setShowModal(true);
-    } catch (error) {
-      console.error('获取合同详情失败:', error);
-      showErrorToast(`获取合同详情失败: ${error.message}`);
-    }
+    }, t('contracts.fetchDetailError'));
   };
 
   const handleDelete = async (id) => {
     if (window.confirm(t('contracts.confirmDelete'))) {
-      try {
+      await safeAsync(async () => {
         await contractService.deleteContract(id);
         await fetchContracts();
-      } catch (err) {
-        console.error('删除合同失败:', err);
-        showErrorToast(`删除失败: ${err.message}`);
-      }
+      }, t('contracts.deleteError'));
     }
   };
 
@@ -167,7 +153,33 @@ const ContractsPage = () => {
   const completedContracts = contracts.filter(c => c.status === 'COMPLETED').length;
   const pendingContracts = contracts.filter(c => c.status === 'PENDING').length;
 
-  console.log("-------------->> ",showModal)
+  // 空状态组件
+  const EmptyState = () => (
+    <div className="text-center py-12">
+      <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
+        {t('contracts.noContracts')}
+      </h3>
+      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        {t('contracts.noContractsDescription')}
+      </p>
+      <div className="mt-6">
+        <button
+          type="button"
+          onClick={handleNewModal}
+          className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          <svg className="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          {t('contracts.addContract')}
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -241,31 +253,29 @@ const ContractsPage = () => {
         </div>
       </div>
 
-      {/* Contract Table */}
+      {/* Contract Table or Empty State */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             {t('contracts.contractList')}
           </h3>
         </div>
-        <ContractTable 
-          contracts={filteredContracts} 
-          onEdit={handleEdit} 
-          onDelete={handleDelete} 
-        />
+          <ContractTable 
+            contracts={filteredContracts} 
+            onEdit={handleEdit} 
+            onDelete={handleDelete} 
+          />
       </div>
       
       {/* Contract Form Modal */}
-      <ErrorBoundary>
-        <ContractForm
-          formData={formData}
-          onFormChange={handleFormChange}
-          onSubmit={handleSubmit}
-          onClose={handleCloseModal}
-          isEditing={!!formData.id}
-          showModal={showModal}
-        />
-      </ErrorBoundary>
+      <ContractForm
+        formData={formData}
+        onFormChange={handleFormChange}
+        onSubmit={handleSubmit}
+        onClose={handleCloseModal}
+        isEditing={!!formData.id}
+        showModal={showModal}
+      />
     </div>
   );
 };

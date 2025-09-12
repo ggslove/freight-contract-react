@@ -1,176 +1,85 @@
 import React, { useState, useEffect } from 'react';
 import { t } from '../utils/i18n';
-import { Plus } from 'lucide-react';
 import roleService from '../services/roleService';
 import RoleTable from '../components/Role/RoleTable';
 import RoleForm from '../components/Role/RoleForm';
 import RoleStats from '../components/Role/RoleStats';
-import showErrorToast from '../utils/errorToast';
-import ErrorBoundary from '../components/ErrorBoundary';
+import { safeAsync } from '../utils/globalErrorHandler';
 
-const RoleManagementPage = () => {
+const RolePage = () => {
   const [roles, setRoles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const [showForm, setShowForm] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [selectedRole, setSelectedRole] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    permissions: []
-  });
-
-  const allPermissions = [
-    '系统管理', '用户管理', '角色管理', '合同管理', '财务管理',
-    '币种管理', '客户管理', '报表查看', '数据导出', '系统配置',
-    '合同创建', '合同编辑', '合同删除', '合同审核', '付款管理',
-    '收款管理', '发票管理', '统计分析', '日志查看'
-  ];
+  const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [editingRole, setEditingRole] = useState(null);
 
   const fetchRoles = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      setError(null);
       const data = await roleService.getAllRoles();
       setRoles(data);
     } catch (error) {
       console.error('获取角色列表失败:', error);
-      showErrorToast('获取角色列表失败: ' + error.message);
-      setError('获取角色列表失败: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // 合并初始加载和语言变化监听
   useEffect(() => {
     fetchRoles();
 
-    let languageChangeTimeout;
+    // 监听语言变化
     const handleLanguageChange = () => {
-      // 防抖处理，避免重复调用
-      clearTimeout(languageChangeTimeout);
-      languageChangeTimeout = setTimeout(() => {
-        console.log('🌐 Language change triggered fetchRoles');
-        fetchRoles();
-      }, 100);
+      console.log('🌐 Language change triggered fetchRoles');
+      fetchRoles();
     };
 
     window.addEventListener('languageChanged', handleLanguageChange);
     return () => {
       window.removeEventListener('languageChanged', handleLanguageChange);
-      clearTimeout(languageChangeTimeout);
     };
   }, []);
 
-  const handleAddRole = async () => {
-    if (!formData.name.trim()) {
-      showErrorToast('请输入角色名称');
-      return;
-    }
-
-    try {
-      const newRole = await roleService.createRole({
-        name: formData.name,
-        description: formData.description,
-        permissions: formData.permissions
-      });
-      
-      setRoles([...roles, newRole]);
-      setShowForm(false);
-      setFormData({ name: '', description: '', permissions: [] });
-    } catch (error) {
-      console.error('创建角色失败:', error);
-      showErrorToast('创建角色失败: ' + error.message);
-    }
+  const handleAddRole = async (values) => {
+    await safeAsync(async () => {
+      await roleService.createRole(values);
+      setShowModal(false);
+      fetchRoles();
+    }, t('role.createError'));
   };
 
-  const handleEditRole = async () => {
-    if (!formData.name.trim()) {
-      showErrorToast('请输入角色名称');
-      return;
-    }
-
-    try {
-      const updatedRole = await roleService.updateRole(selectedRole.id, {
-        name: formData.name,
-        description: formData.description,
-        permissions: formData.permissions
-      });
-      
-      setRoles(roles.map(role => role.id === selectedRole.id ? updatedRole : role));
-      setShowEditModal(false);
-      setSelectedRole(null);
-      setFormData({ name: '', description: '', permissions: [] });
-    } catch (error) {
-      console.error('更新角色失败:', error);
-      showErrorToast('更新角色失败: ' + error.message);
-    }
+  const handleUpdateRole = async (values) => {
+    if (!editingRole) return;
+    
+    await safeAsync(async () => {
+      await roleService.updateRole(editingRole.id, values);
+      setEditingRole(null);
+      setShowModal(false);
+      fetchRoles();
+    }, t('role.updateError'));
   };
 
   const handleDeleteRole = async (id) => {
-    const role = roles.find(r => r.id === id);
-    if (role.isSystem) {
-      showErrorToast('系统预置角色不能删除');
-      return;
-    }
-    if (role.userCount > 0) {
-      showErrorToast('该角色下还有用户，不能删除');
-      return;
-    }
-
-    if (window.confirm('确定要删除该角色吗？')) {
-      try {
-        await roleService.deleteRole(id);
-        setRoles(roles.filter(role => role.id !== id));
-      } catch (error) {
-        console.error('删除角色失败:', error);
-        showErrorToast('删除角色失败: ' + error.message);
-      }
-    }
+    await safeAsync(async () => {
+      await roleService.deleteRole(id);
+      fetchRoles();
+    }, t('role.deleteError'));
   };
 
-  const togglePermission = (permission) => {
-    if (formData.permissions.includes(permission)) {
-      setFormData({
-        ...formData,
-        permissions: formData.permissions.filter(p => p !== permission)
-      });
-    } else {
-      setFormData({
-        ...formData,
-        permissions: [...formData.permissions, permission]
-      });
-    }
-  };
-
-  const openEditModal = (role) => {
-    setSelectedRole(role);
-    setFormData({
-      name: role.name,
-      description: role.description || '',
-      permissions: role.permissions || []
-    });
-    setShowEditModal(true);
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-96">
-        <div className="text-lg text-gray-600 dark:text-gray-400">加载中...</div>
-      </div>
+  const openEditModal = async (role) => {
+    const roleData = await safeAsync(
+      () => roleService.getRoleById(role.id),
+      t('role.fetchError')
     );
-  }
+    if (roleData) {
+      setEditingRole(roleData);
+      setShowModal(true);
+    }
+  };
 
-  if (error) {
-    return (
-      <div className="p-8 text-red-500 text-center">
-        {typeof error === 'object' ? error.message || error.toString() : error}
-      </div>
-    );
-  }
+  const closeForm = () => {
+    setShowModal(false);
+    setEditingRole(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -178,19 +87,21 @@ const RoleManagementPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {t('system.roleManagement')}
+            {t('roles.title')}
           </h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            {t('system.roleManagementDesc')}
+            {t('roles.subtitle')}
           </p>
         </div>
         
         <button
-          onClick={() => { setShowForm(true); setIsEditMode(false); setSelectedRole(null); }}
+          onClick={() => setShowModal(true)}
           className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
         >
-          <Plus size={16} className="mr-2" />
-          {t('system.addRole')}
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          {t('roles.addRole')}
         </button>
       </div>
 
@@ -201,30 +112,26 @@ const RoleManagementPage = () => {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {t('system.roleList')}
+            {t('roles.roleList')}
           </h3>
         </div>
         <RoleTable
           roles={roles}
+          loading={loading}
           onEdit={openEditModal}
           onDelete={handleDeleteRole}
-          formatDate={(dateString) => new Date(dateString).toLocaleString('zh-CN')}
         />
       </div>
-      <ErrorBoundary>
-        <RoleForm
-          onSubmit={isEditMode ? handleEditRole : handleAddRole}
-          isEditMode={isEditMode}
-          editingRole={selectedRole}
-          onCancel={() => {
-            setShowForm(false);
-            setFormData({ name: '', description: '', permissions: [] });
-            setSelectedRole(null);
-          }}
-        />
-      </ErrorBoundary>
+
+      <RoleForm
+        onSubmit={editingRole ? handleUpdateRole : handleAddRole}
+        isEditMode={!!editingRole}
+        editingRole={editingRole}
+        onClose={closeForm}
+        showModal={showModal}
+      />
     </div>
   );
 };
 
-export default RoleManagementPage;
+export default RolePage;

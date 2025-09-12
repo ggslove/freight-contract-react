@@ -1,80 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import { t } from '../utils/i18n';
-import { Plus } from 'lucide-react';
-import { services } from '../services'; // 使用包装后的服务
-import { safeAsync, showSuccess } from '../utils/globalErrorHandler';
+import services from '../services';
 import RoleTable from '../components/Role/RoleTable';
 import RoleForm from '../components/Role/RoleForm';
-import RoleStats from '../components/Role/RoleStats';
-import ErrorBoundary from '../components/ErrorBoundary';
+import { safeAsync } from '../utils/globalErrorHandler';
 
-const RoleManagementPage = () => {
+const RolePageSimplified = () => {
   const [roles, setRoles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [selectedRole, setSelectedRole] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [editingRole, setEditingRole] = useState(null);
 
-  // 获取角色列表 - 使用全局错误处理
   const fetchRoles = async () => {
     setLoading(true);
-    const data = await services.role.getAllRoles();
-    setRoles(data);
-    setLoading(false);
+    try {
+      const data = await services.role.getAllRoles();
+      setRoles(data);
+    } catch (error) {
+      console.error('获取角色列表失败:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // 初始加载
   useEffect(() => {
     fetchRoles();
+
+    // 监听语言变化
+    const handleLanguageChange = () => {
+      console.log('🌐 Language change triggered fetchRoles');
+      fetchRoles();
+    };
+
+    window.addEventListener('languageChanged', handleLanguageChange);
+    return () => {
+      window.removeEventListener('languageChanged', handleLanguageChange);
+    };
   }, []);
 
-  // 创建角色
-  const handleAddRole = async (roleData) => {
-    const newRole = await services.role.createRole(roleData);
-    setRoles([...roles, newRole]);
-    setShowForm(false);
-    showSuccess('角色创建成功');
+  const handleAddRole = async (values) => {
+    await safeAsync(async () => {
+      await services.role.createRole(values);
+      setShowModal(false);
+      fetchRoles();
+    }, t('role.createError'));
   };
 
-  // 更新角色
-  const handleEditRole = async (roleData) => {
-    const updatedRole = await services.role.updateRole(selectedRole.id, roleData);
-    setRoles(roles.map(role => role.id === selectedRole.id ? updatedRole : role));
-    setShowForm(false);
-    setSelectedRole(null);
-    showSuccess('角色更新成功');
+  const handleUpdateRole = async (values) => {
+    if (!editingRole) return;
+    
+    await safeAsync(async () => {
+      await services.role.updateRole(editingRole.id, values);
+      setEditingRole(null);
+      setShowModal(false);
+      fetchRoles();
+    }, t('role.updateError'));
   };
 
-  // 删除角色
   const handleDeleteRole = async (id) => {
-    const role = roles.find(r => r.id === id);
-    if (role.isSystem) {
-      throw new Error('系统预置角色不能删除');
-    }
-    if (role.userCount > 0) {
-      throw new Error('该角色下还有用户，不能删除');
-    }
-
-    if (window.confirm('确定要删除该角色吗？')) {
+    await safeAsync(async () => {
       await services.role.deleteRole(id);
-      setRoles(roles.filter(role => role.id !== id));
-      showSuccess('角色删除成功');
+      fetchRoles();
+    }, t('role.deleteError'));
+  };
+
+  const openEditModal = async (role) => {
+    const roleData = await safeAsync(
+      () => services.role.getById(role.id),
+      t('role.fetchError')
+    );
+    if (roleData) {
+      setEditingRole(roleData);
+      setShowModal(true);
     }
   };
 
-  const openEditModal = (role) => {
-    setSelectedRole(role);
-    setIsEditMode(true);
-    setShowForm(true);
+  const closeForm = () => {
+    setShowModal(false);
+    setEditingRole(null);
   };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-96">
-        <div className="text-lg text-gray-600 dark:text-gray-400">加载中...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -82,46 +86,48 @@ const RoleManagementPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {t('system.roleManagement')}
+            {t('roles.title')}
           </h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            {t('system.roleManagementDesc')}
+            {t('roles.subtitle')}
           </p>
         </div>
         
         <button
-          onClick={() => { setShowForm(true); setIsEditMode(false); setSelectedRole(null); }}
+          onClick={() => setShowModal(true)}
           className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
         >
-          <Plus size={16} className="mr-2" />
-          {t('system.addRole')}
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          {t('roles.addRole')}
         </button>
       </div>
 
-      {/* Stats Cards */}
-      <RoleStats roles={roles} />
-
       {/* Role Table */}
-      <ErrorBoundary>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            {t('roles.roleList')}
+          </h3>
+        </div>
         <RoleTable
           roles={roles}
+          loading={loading}
           onEdit={openEditModal}
           onDelete={handleDeleteRole}
         />
-      </ErrorBoundary>
+      </div>
 
-      {/* Role Form */}
-      <ErrorBoundary>
-        <RoleForm
-          isOpen={showForm}
-          onClose={() => { setShowForm(false); setSelectedRole(null); }}
-          onSubmit={isEditMode ? handleEditRole : handleAddRole}
-          editingRole={selectedRole}
-          isEditMode={isEditMode}
-        />
-      </ErrorBoundary>
+      <RoleForm
+        onSubmit={editingRole ? handleUpdateRole : handleAddRole}
+        isEditMode={!!editingRole}
+        editingRole={editingRole}
+        onClose={closeForm}
+        showModal={showModal}
+      />
     </div>
   );
 };
 
-export default RoleManagementPage;
+export default RolePageSimplified;

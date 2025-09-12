@@ -54,13 +54,14 @@ const CurrencyForm = ({
         isActive: true
       });
     }
-  }, [ isEditMode, editingCurrency]);
+  }, [isEditMode, editingCurrency]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'exchangeRate' || name === 'decimalPlaces' ? parseFloat(value) : value
+      [name]: name === 'exchangeRate' || name === 'decimalPlaces' ? parseFloat(value) : 
+               name === 'isActive' ? (value === 'true') : value
     }));
   };
 
@@ -146,7 +147,7 @@ const CurrencyForm = ({
               <label style={inputLabel}>{t('currency.isActive')}</label>
               <select
                 name="isActive"
-                value={formData.isActive || true}
+                value={formData.isActive ? 'true' : 'false'}
                 onChange={handleChange}
                 style={selectField}
               >

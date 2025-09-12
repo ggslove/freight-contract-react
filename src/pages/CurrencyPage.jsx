@@ -5,7 +5,7 @@ import StatsCard from '../components/ui/StatsCard';
 import CurrencyTable from '../components/Currency/CurrencyTable';
 import CurrencyForm from '../components/Currency/CurrencyForm';
 import showErrorToast from '../utils/errorToast';
-import ErrorBoundary from '../components/ErrorBoundary';
+import { safeAsync } from '../utils/globalErrorHandler';
 
 const CurrencyPage = () => {
   const [currencies, setCurrencies] = useState([]);
@@ -15,15 +15,11 @@ const CurrencyPage = () => {
 
   const fetchCurrencies = async () => {
     setLoading(true);
-    try {
+    await safeAsync(async () => {
       const data = await currencyService.getAllCurrencies();
       setCurrencies(data);
-    } catch (error) {
-      console.error('获取货币列表失败:', error);
-      showErrorToast(t('currency.fetchError'));
-    } finally {
-      setLoading(false);
-    }
+    }, t('currency.fetchError'));
+    setLoading(false);
   };
 
   // 合并初始加载和语言变化监听
@@ -48,60 +44,49 @@ const CurrencyPage = () => {
   }, []);
 
   const handleAddCurrency = async (values) => {
-    try {
+    await safeAsync(async () => {
       await currencyService.createCurrency(values);
-      alert(t('currency.createSuccess'));
       setShowModal(false);
       fetchCurrencies();
-    } catch (error) {
-      console.error('创建货币失败:', error);
-      showErrorToast(error.message || t('currency.createError'));
-    }
+    }, t('currency.createError'));
   };
 
   const handleUpdateCurrency = async (values) => {
     if (!editingCurrency) return;
     
-    try {
+    await safeAsync(async () => {
       await currencyService.updateCurrency(editingCurrency.id, values);
-      alert(t('currency.updateSuccess'));
       setEditingCurrency(null);
       fetchCurrencies();
-    } catch (error) {
-      console.error('更新货币失败:', error);
-      showErrorToast(error.message || t('currency.updateError'));
-    }
+    }, t('currency.updateError'));
   };
 
   const handleToggleStatus = async (currency) => {
-    try {
+    await safeAsync(async () => {
       await currencyService.updateCurrency(currency.id, {
         ...currency,
         isActive: !currency.isActive
       });
-      alert(t('currency.statusUpdateSuccess'));
       fetchCurrencies();
-    } catch (error) {
-      console.error('更新货币状态失败:', error);
-      showErrorToast(t('currency.statusUpdateError'));
-    }
+    }, t('currency.statusUpdateError'));
   };
 
   const handleDeleteCurrency = async (id) => {
-    try {
+    await safeAsync(async () => {
       await currencyService.deleteCurrency(id);
-      alert(t('currency.deleteSuccess'));
       fetchCurrencies();
-    } catch (error) {
-      console.error('删除货币失败:', error);
-      showErrorToast(t('currency.deleteError'));
-    }
+    }, t('currency.deleteError'));
   };
 
-  const openEditModal = async(id) => {
-    const currency = currencyService.getCurrencyById(id);
-    setEditingCurrency(currency);
-    setShowModal(true);
+  const openEditModal = async (id) => {
+    const currency = await safeAsync(
+      () => currencyService.getCurrencyById(id),
+      t('currency.fetchError')
+    );
+    if (currency) {
+      setEditingCurrency(currency);
+      setShowModal(true);
+    }
   };
 
   const closeForm = () => {
@@ -178,17 +163,15 @@ const CurrencyPage = () => {
         />
       </div>
       
-      <ErrorBoundary>
-        <CurrencyForm
-          onSubmit={editingCurrency ? handleUpdateCurrency : handleAddCurrency}
-          isEditMode={!!editingCurrency}
-          editingCurrency={editingCurrency}
-          onClose={closeForm}
-          showModal={showModal}
-        />
-        </ErrorBoundary>
-      </div>
-      )
+      <CurrencyForm
+        onSubmit={editingCurrency ? handleUpdateCurrency : handleAddCurrency}
+        isEditMode={!!editingCurrency}
+        editingCurrency={editingCurrency}
+        onClose={closeForm}
+        showModal={showModal}
+      />
+    </div>
+  );
 };
 
 export default CurrencyPage;

@@ -54,7 +54,13 @@ export const contractsTranslations = {
       partialContracts: '部分完成合同',
       completedContracts: '已完成合同',
       pendingContracts: '待处理合同',
-      contractList: '合同列表'
+      contractList: '合同列表',
+      noContracts: '暂无合同',
+      noContractsDescription: '您还没有添加任何合同，点击"新增合同"开始创建您的第一个合同。',
+      fetchError: '获取合同列表失败',
+      saveError: '保存合同失败',
+      deleteError: '删除合同失败',
+      fetchDetailError: '获取合同详情失败'
     }
   },
   en: {
@@ -111,7 +117,13 @@ export const contractsTranslations = {
       partialContracts: 'Partial Contracts',
       completedContracts: 'Completed Contracts',
       pendingContracts: 'Pending Contracts',
-      contractList: 'Contract List'
+      contractList: 'Contract List',
+      noContracts: 'No Contracts',
+      noContractsDescription: 'You haven\'t added any contracts yet. Click "Add Contract" to create your first contract.',
+      fetchError: 'Failed to fetch contracts',
+      saveError: 'Failed to save contract',
+      deleteError: 'Failed to delete contract',
+      fetchDetailError: 'Failed to fetch contract details'
     }
   }
 };

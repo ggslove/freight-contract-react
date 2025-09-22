@@ -60,7 +60,22 @@ export const contractsTranslations = {
       fetchError: '获取合同列表失败',
       saveError: '保存合同失败',
       deleteError: '删除合同失败',
-      fetchDetailError: '获取合同详情失败'
+      fetchDetailError: '获取合同详情失败',
+      // 新增分页和筛选翻译
+      dateRange: '日期范围',
+      startDate: '开始日期',
+      endDate: '结束日期',
+      allStatus: '所有状态',
+      draft: '草稿',
+      pending: '待处理',
+      approved: '已批准',
+      rejected: '已拒绝',
+      resetFilters: '重置筛选',
+      previous: '上一页',
+      next: '下一页',
+      client: '客户',
+      amount: '金额',
+      date: '日期'
     }
   },
   en: {
@@ -123,7 +138,22 @@ export const contractsTranslations = {
       fetchError: 'Failed to fetch contracts',
       saveError: 'Failed to save contract',
       deleteError: 'Failed to delete contract',
-      fetchDetailError: 'Failed to fetch contract details'
+      fetchDetailError: 'Failed to fetch contract details',
+      // 新增分页和筛选翻译
+      dateRange: 'Date Range',
+      startDate: 'Start Date',
+      endDate: 'End Date',
+      allStatus: 'All Status',
+      draft: 'Draft',
+      pending: 'Pending',
+      approved: 'Approved',
+      rejected: 'Rejected',
+      resetFilters: 'Reset Filters',
+      previous: 'Previous',
+      next: 'Next',
+      client: 'Client',
+      amount: 'Amount',
+      date: 'Date'
     }
   }
 };

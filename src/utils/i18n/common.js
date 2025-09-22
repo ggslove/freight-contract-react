@@ -32,7 +32,9 @@ export const commonTranslations = {
       warning: '警告',
       info: '信息',
       enabled: '启用',
-      disabled: '禁用'
+      disabled: '禁用',
+      previous: '上一页',
+      next: '下一页'
     }
   },
   en: {
@@ -67,7 +69,9 @@ export const commonTranslations = {
       warning: 'Warning',
       info: 'Info',
       enabled: 'Enabled',
-      disabled: 'Disabled'
+      disabled: 'Disabled',
+      previous: 'Previous',
+      next: 'Next'
     }
   }
 };

@@ -23,20 +23,20 @@ const CurrencyForm = ({
   showModal = false,
   loading = false
 }) => {
-
-   if (!showModal) {
-    return null;
-  }
-
-  const [formData, setFormData] = useState({
+  
+  // 使用函数式初始化避免重复渲染
+  const [formData, setFormData] = useState(() => ({
     code: '',
     name: '',
     symbol: '',
     exchangeRate: 1.0,
     isActive: true
-  });
- 
+  }));
+
+  // 优化useEffect，避免不必要的重新渲染
   useEffect(() => {
+    if (!showModal) return;
+    
     if (isEditMode && editingCurrency) {
       setFormData({
         code: editingCurrency.code || '',
@@ -45,7 +45,7 @@ const CurrencyForm = ({
         exchangeRate: editingCurrency.exchangeRate || 1.0,
         isActive: editingCurrency.isActive !== undefined ? editingCurrency.isActive : true
       });
-    } else {
+    } else if (!isEditMode && showModal) {
       setFormData({
         code: '',
         name: '',
@@ -54,7 +54,11 @@ const CurrencyForm = ({
         isActive: true
       });
     }
-  }, [isEditMode, editingCurrency]);
+  }, [isEditMode, editingCurrency, showModal]);
+
+  if (!showModal) {
+    return null;
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;

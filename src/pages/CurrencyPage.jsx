@@ -84,6 +84,7 @@ const CurrencyPage = () => {
       t('currency.fetchError')
     );
     if (currency) {
+      // 先设置编辑货币，再显示模态框
       setEditingCurrency(currency);
       setShowModal(true);
     }
@@ -91,7 +92,10 @@ const CurrencyPage = () => {
 
   const closeForm = () => {
     setShowModal(false);
-    setEditingCurrency(null);
+    // 延迟清除编辑状态，避免渲染问题
+    setTimeout(() => {
+      setEditingCurrency(null);
+    }, 100);
   };
 
   // 计算统计数据

@@ -23,8 +23,7 @@ import { CURRENCY_QUERIES } from '../../graphql/queries/currency.queries.js';
 
 
 
-const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, showModal }) => {
-  if (!showModal) return null;
+const ContractForm = ({ formData, onChange, onSubmit, onClose, isEditing, showModal }) => {
   const [itemType, setItemType] = useState('receivable');
   const [itemName, setItemName] = useState('');
   const [itemCurrency, setItemCurrency] = useState('CNY');
@@ -32,13 +31,13 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
   const {GET_ACTIVE_CURRENCIES}=CURRENCY_QUERIES;
   const { data: currenciesData, loading: currenciesLoading } = useQuery(gql(GET_ACTIVE_CURRENCIES));
 
-  // 确保组件在showModal为true时才渲染
+  // 移除重复的条件检查
   if (!showModal) {
     return null;
   }
 
   const handleFormChange = (changeKV) => {
-    onFormChange({ ...formData, ...changeKV});
+    onChange({ ...formData, ...changeKV});
   };
 
   const addItem = () => {
@@ -81,12 +80,12 @@ const ContractForm = ({ formData, onFormChange, onSubmit, onClose, isEditing, sh
       const newReceivables = (formData.receivables || []).map(item =>
         item.id === id ? { ...item, status: newStatus } : item
       );
-      onFormChange({ ...formData, receivables: newReceivables });
+      handleFormChange({ receivables: newReceivables });
     } else {
       const newPayables = (formData.payables || []).map(item =>
         item.id === id ? { ...item, status: newStatus } : item
       );
-      onFormChange({ ...formData, payables: newPayables });
+      handleFormChange({ payables: newPayables });
     }
   };
 

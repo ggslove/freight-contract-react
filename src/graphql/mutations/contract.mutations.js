@@ -1,6 +1,6 @@
 // 合同相关的GraphQL变更 - 与后端schema完全匹配
 
-export const CONTRACT_MUTATIONS = {
+ const CONTRACT_MUTATIONS = {
   // 创建合同
   CREATE_CONTRACT: `
     mutation CreateContract(
@@ -262,3 +262,5 @@ export const CONTRACT_MUTATIONS = {
     }
   `
 };
+
+export default CONTRACT_MUTATIONS;

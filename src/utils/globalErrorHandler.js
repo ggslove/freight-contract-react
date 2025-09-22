@@ -47,17 +47,21 @@ class GlobalErrorHandler {
   }
 
   // 统一的异步操作包装器
-  async safeAsync(asyncFn, context = '') {
+  async safeAsync(asyncFn, context = '',finalCallback) {
     try {
       return await asyncFn();
     } catch (error) {
       this.handleError(error, context);
       throw error; // 让调用者可以进一步处理
+    }finally{
+      if(finalCallback){
+        finalCallback();
+      }
     }
   }
 
   // 统一的同步操作包装器
-  safeSync(fn, context = '') {
+  safeSync(fn, context = '',finalCallback) {
     try {
       return fn();
     } catch (error) {
@@ -76,8 +80,8 @@ class GlobalErrorHandler {
 const globalErrorHandler = new GlobalErrorHandler();
 
 // 导出工具函数
-export const safeAsync = (asyncFn, context) => globalErrorHandler.safeAsync(asyncFn, context);
-export const safeSync = (fn, context) => globalErrorHandler.safeSync(fn, context);
+export const safeAsync = (asyncFn, context = '',finalCallback) => globalErrorHandler.safeAsync(asyncFn, context,finalCallback);
+export const safeSync = (fn, context = '',finalCallback) => globalErrorHandler.safeSync(fn, context,finalCallback);
 export const showSuccess = (message) => globalErrorHandler.showSuccess(message);
 export const handleError = (error, context) => globalErrorHandler.handleError(error, context);
 

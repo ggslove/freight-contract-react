@@ -1,184 +1,204 @@
 import React, { useState, useEffect } from 'react';
 import { t } from '../utils/i18n';
-import contractService from '../services/contractService';
-import StatsCard from '../components/ui/StatsCard';
-import ContractTable from '../components/Contracts/ContractTable';
 import ContractForm from '../components/Contracts/ContractForm';
-import { filterContracts, getInitialFormData } from '../components/Contracts/contractUtils';
-import showErrorToast from '../utils/errorToast';
-import showSuccessToast from '../utils/successToast';
+import ContractStats from '../components/Contracts/ContractStats';
+import contractService from '../services/contractService';
 import { safeAsync } from '../utils/globalErrorHandler';
-
-
 
 const ContractsPage = () => {
   const [contracts, setContracts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [language, setLanguageState] = useState('zh');
-  const [formData, setFormData] = useState(getInitialFormData());
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [dateRange, setDateRange] = useState({
+    startDate: '',
+    endDate: ''
+  });
+  const [statusFilter, setStatusFilter] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({
+    contractNumber: '',
+    clientName: '',
+    totalAmount: '',
+    dateOfReceipt: '',
+    status: 'draft'
+  });
+  const [editingContract, setEditingContract] = useState(null);
+  
+  // 分页相关状态
+  const [pageInfo, setPageInfo] = useState({
+    hasNextPage: false,
+    hasPreviousPage: false,
+    startCursor: null,
+    endCursor: null
+  });
+  const [totalCount, setTotalCount] = useState(0);
+  const contractsPerPage = 10;
 
-  // 获取合同列表
-  const fetchContracts = async () => {
-    setLoading(true);
-    await safeAsync(async () => {
-      const contracts = await contractService.getAllContracts();
-      setContracts(contracts);
-    }, t('contracts.fetchError'));
-    setLoading(false);
-  };
-
-  // 合并初始加载和语言变化监听
   useEffect(() => {
     fetchContracts();
-    let languageChangeTimeout;
-    const handleLanguageChange = (event) => {
-      setLanguageState(event.detail);
-      // 防抖处理，避免重复调用
-      clearTimeout(languageChangeTimeout);
-      languageChangeTimeout = setTimeout(() => {
-        console.log('🌐 Language change triggered fetchContracts');
-        fetchContracts();
-      }, 100);
+
+    // 监听语言变化
+    const handleLanguageChange = () => {
+      console.log('🌐 Language change triggered fetchContracts');
+      fetchContracts();
     };
 
     window.addEventListener('languageChanged', handleLanguageChange);
     return () => {
       window.removeEventListener('languageChanged', handleLanguageChange);
-      clearTimeout(languageChangeTimeout);
     };
-  }, []);
+  }, [currentPage, searchTerm, statusFilter, dateRange]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const fetchContracts = async () => {
     await safeAsync(async () => {
-      // 使用解构赋值移除receivableItems和payableItems
-      const { receivables, payables,...contractInput } = formData;
-      // 构建应收应付数据
-      const receivableInputs = receivables?.map(item => ({
-        financeItem: item.financeItem || item.name || '未知客户',
-        amount: item.amount || 0,
-        currencyCode: item.currencyCode || item.currency || 'CNY',
-        status: item.status || 'PENDING',
-      })) || [];
+      setLoading(true);
+      let result;
+      const first = contractsPerPage;
+      // 计算游标
+      const after = currentPage > 1 ? btoa(`arrayconnection:${(currentPage - 1) * contractsPerPage - 1}`) : null;
 
-      const payableInputs = payables?.map(item => ({
-        financeItem: item.financeItem || item.name || '未知供应商',
-        amount: item.amount || 0,
-        currencyCode: item.currencyCode || item.currency || 'CNY',
-        status: item.status || 'PENDING',
-      })) || [];
-
-      if (formData.id) {
-        // 更新合同
-        await contractService.updateContract(formData.id, {
-          ...contractInput
-        });
+      // 根据是否有搜索词和状态筛选选择不同的查询
+      if (searchTerm) {
+        result = await contractService.searchContractsPaginated(searchTerm, first, after);
+      } else if (statusFilter) {
+        result = await contractService.getContractsByStatusPaginated(statusFilter, first, after);
       } else {
-        // 创建新合同
-        await contractService.createContract({
-          contractInput,
-          receivableInputs,
-          payableInputs
-        });
-        showSuccessToast('合同创建成功');
+        result = await contractService.getContractsPaginated(first, after);
       }
-      await fetchContracts();
-      handleCloseModal();
-    }, t('contracts.saveError'));
+
+      // 映射后端字段到前端使用的字段
+      const mappedContracts = result.contracts.map(contract => ({
+        id: contract.id,
+        contractNumber: contract.businessNo || contract.billNo || '',
+        clientName: contract.theClient || '',
+        totalAmount: contract.amount || 0,
+        dateOfReceipt: contract.dateOfReceipt,
+        status: contract.status?.toLowerCase() || 'draft',
+        salesman: contract.salesman || '',
+        invoiceNo: contract.invoiceNo || '',
+        dateOfSailing: contract.dateOfSailing || '',
+        remarks: contract.remarks || ''
+      }));
+
+      // 前端筛选日期范围（因为后端可能不支持日期筛选）
+      const filteredByDate = mappedContracts.filter(contract => {
+        const contractDate = new Date(contract.dateOfReceipt);
+        const matchesStartDate = !dateRange.startDate || contractDate >= new Date(dateRange.startDate);
+        const matchesEndDate = !dateRange.endDate || contractDate <= new Date(dateRange.endDate);
+        return matchesStartDate && matchesEndDate;
+      });
+      setContracts(filteredByDate);
+      setPageInfo(result.pageInfo);
+      setTotalCount(result.totalCount);
+    } ,'获取合同列表失败:',()=>{setLoading(false)});
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleDateRangeChange = (field, value) => {
+    setDateRange(prev => ({ ...prev, [field]: value }));
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilterChange = (value) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  };
+
+  const resetFilters = () => {
+    setSearchTerm('');
+    setDateRange({ startDate: '', endDate: '' });
+    setStatusFilter('');
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   const handleNewModal = () => {
-    setFormData(
-      getInitialFormData()
-    );
+    setEditingContract(null);
+    setFormData({
+      contractNumber: '',
+      clientName: '',
+      totalAmount: '',
+      dateOfReceipt: '',
+      status: 'draft'
+    });
     setShowModal(true);
   };
 
-  const handleEdit = async (id) => {
-    await safeAsync(async () => {
-      // 获取完整的合同详情
-      const contract = await contractService.getContractById(id);
-      setFormData({
-        ...contract,
-        receivables: contract.receivables || [],
-        payables: contract.payables || []
-      });
-      setShowModal(true);
-    }, t('contracts.fetchDetailError'));
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm(t('contracts.confirmDelete'))) {
-      await safeAsync(async () => {
-        await contractService.deleteContract(id);
-        await fetchContracts();
-      }, t('contracts.deleteError'));
-    }
+  const handleEdit = (contract) => {
+    setEditingContract(contract);
+    setFormData({
+      contractNumber: contract.contractNumber,
+      clientName: contract.clientName,
+      totalAmount: contract.totalAmount,
+      dateOfReceipt: contract.dateOfReceipt,
+      status: contract.status
+    });
+    setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setFormData(getInitialFormData());
+    setEditingContract(null);
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const contractData = {
+      businessNo: formData.contractNumber,
+      billNo: formData.contractNumber,
+      theClient: formData.clientName,
+      amount: parseFloat(formData.totalAmount),
+      dateOfReceipt: formData.dateOfReceipt,
+      status: formData.status.toUpperCase(),
+      remarks: ''
+    };
 
-  const handleFormChange = (newFormData) => {
-    setFormData(newFormData);
+    if (editingContract) {
+      await contractService.updateContract(editingContract.id, contractData);
+    } else {
+      await contractService.createContract(contractData);
+    }
+      // 重新获取当前页数据
+    await fetchContracts();
+    handleCloseModal();
   };
 
-  const filteredContracts = filterContracts(contracts, searchTerm);
+  const handleDelete = async (id) => {
+    if (window.confirm(t('contracts.confirmDelete'))) {
+     await safeAsync(async ()=>{
+        await contractService.deleteContract(id);
+        await fetchContracts(); 
+     },'删除合同失败:')   
+    }
+  };
 
-  if (loading) {
-    return (
-      <div style={{ 
-        minHeight: '100vh',
-        backgroundColor: '#f5f5f5',
-        padding: '2rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div style={{ fontSize: '1.125rem', color: '#6b7280' }}>
-          加载中...
-        </div>
-      </div>
-    );
-  }
+  const handleFormChange = (formData) => {
+    setFormData(prev => formData);
+  };
 
-  // 计算统计数据
-  const totalContracts = contracts.length;
-  const partialContracts = contracts.filter(c => c.status === 'PARTIAL').length;
-  const completedContracts = contracts.filter(c => c.status === 'COMPLETED').length;
-  const pendingContracts = contracts.filter(c => c.status === 'PENDING').length;
+  const getStatusColor = (status) => {
+    const colors = {
+      draft: 'bg-gray-100 text-gray-800',
+      pending: 'bg-yellow-100 text-yellow-800',
+      approved: 'bg-green-100 text-green-800',
+      rejected: 'bg-red-100 text-red-800',
+      completed: 'bg-blue-100 text-blue-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+  };
 
-  // 空状态组件
-  const EmptyState = () => (
-    <div className="text-center py-12">
-      <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-      <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-        {t('contracts.noContracts')}
-      </h3>
-      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        {t('contracts.noContractsDescription')}
-      </p>
-      <div className="mt-6">
-        <button
-          type="button"
-          onClick={handleNewModal}
-          className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          <svg className="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          {t('contracts.addContract')}
-        </button>
-      </div>
-    </div>
-  );
+  // 计算分页信息
+  const totalPages = Math.ceil(totalCount / contractsPerPage);
+  const indexOfFirstContract = (currentPage - 1) * contractsPerPage + 1;
+  const indexOfLastContract = Math.min(currentPage * contractsPerPage, totalCount);
 
   return (
     <div className="space-y-6">
@@ -194,7 +214,6 @@ const ContractsPage = () => {
         </div>
         
         <button
-          type="button"
           onClick={handleNewModal}
           className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
         >
@@ -205,76 +224,223 @@ const ContractsPage = () => {
         </button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatsCard
-          title={t('contracts.totalContracts')}
-          value={totalContracts}
-          icon="📋"
-          change={`${totalContracts}`}
-          trend="neutral"
-        />
-        <StatsCard
-          title={t('contracts.partialContracts')}
-          value={partialContracts}
-          icon="🔄"
-          change={`${partialContracts}`}
-          trend="neutral"
-        />
-        <StatsCard
-          title={t('contracts.completedContracts')}
-          value={completedContracts}
-          icon="✅"
-          change={`${completedContracts}`}
-          trend="up"
-        />
-        <StatsCard
-          title={t('contracts.pendingContracts')}
-          value={pendingContracts}
-          icon="⏳"
-          change={`${pendingContracts}`}
-          trend="neutral"
-        />
-      </div>
+      {/* Contract Stats */}
+      <ContractStats contracts={contracts} />
 
-      {/* Search Bar */}
+      {/* Compact Search and Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder={t('contracts.searchPlaceholder')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-          />
-          <svg className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('contracts.search')}
+            </label>
+            <input
+              type="text"
+              placeholder={t('contracts.searchPlaceholder')}
+              value={searchTerm}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('contracts.startDate')}
+            </label>
+            <input
+              type="date"
+              value={dateRange.startDate}
+              onChange={(e) => handleDateRangeChange('startDate', e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('contracts.endDate')}
+            </label>
+            <input
+              type="date"
+              value={dateRange.endDate}
+              onChange={(e) => handleDateRangeChange('endDate', e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('contracts.status')}
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => handleStatusFilterChange(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">{t('contracts.allStatus')}</option>
+                <option value="draft">{t('contracts.draft')}</option>
+                <option value="pending">{t('contracts.pending')}</option>
+                <option value="approved">{t('contracts.approved')}</option>
+                <option value="rejected">{t('contracts.rejected')}</option>
+                <option value="completed">{t('contracts.completed')}</option>
+              </select>
+            </div>
+            <button
+              onClick={resetFilters}
+              className="self-end px-3 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 focus:outline-hidden focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 h-8"
+              title={t('contracts.resetFilters')}
+            >
+              {t('common.reset')}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Contract Table or Empty State */}
+      {/* Contract List with Table */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             {t('contracts.contractList')}
           </h3>
         </div>
-          <ContractTable 
-            contracts={filteredContracts} 
-            onEdit={handleEdit} 
-            onDelete={handleDelete} 
-          />
+        
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {t('contracts.contractNumber')}
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {t('contracts.clientName')}
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {t('contracts.totalAmount')}
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {t('contracts.dateOfReceipt')}
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {t('contracts.status')}
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {t('common.actions')}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              {loading ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-8 text-center">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                    <p className="mt-2 text-gray-600">{t('common.loading')}</p>
+                  </td>
+                </tr>
+              ) : (
+                contracts.map((contract) => (
+                  <tr key={contract.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                      {contract.contractNumber}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {contract.clientName}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      ${contract.totalAmount?.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {new Date(contract.dateOfReceipt).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(contract.status)}`}>
+                        {t(`contracts.${contract.status}`)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                      <button
+                        onClick={() => handleEdit(contract)}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        {t('common.edit')}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(contract.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        {t('common.delete')}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+          
+          {!loading && contracts.length === 0 && (
+            <div className="px-6 py-8 text-center">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">{t('contracts.noContracts')}</h3>
+              <p className="mt-1 text-sm text-gray-500">{t('contracts.noContractsDescription')}</p>
+            </div>
+          )}
+        </div>
+        
+        {/* Pagination - Always Visible */}
+        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-700 dark:text-gray-300">
+              {t('common.showing')} {indexOfFirstContract} {t('common.to')} {Math.min(indexOfLastContract, totalCount)} {t('common.of')} {totalCount} {t('common.results')}
+            </div>
+            
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t('common.previous')}
+              </button>
+              
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+                return startPage + i;
+              }).filter(page => page > 0 && page <= totalPages).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg ${
+                    currentPage === page
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-100'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t('common.next')}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-      
-      {/* Contract Form Modal */}
+
+      {/* Modal */}
       <ContractForm
         formData={formData}
-        onFormChange={handleFormChange}
+        onChange={handleFormChange}
         onSubmit={handleSubmit}
         onClose={handleCloseModal}
-        isEditing={!!formData.id}
         showModal={showModal}
+        isEditMode={!!editingContract}
+        editingContract={editingContract}
       />
     </div>
   );

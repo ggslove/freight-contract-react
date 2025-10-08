@@ -1,10 +1,10 @@
 // 合同相关的GraphQL查询 - 与后端schema完全匹配
 
 export const CONTRACT_QUERIES = {
-  // 获取所有合同（分页）
+  // 获取所有合同（分页，支持过滤条件）
   GET_CONTRACTS_PAGINATED: `
-    query GetContractsPaginated($first: Int!, $after: String) {
-      contracts(first: $first, after: $after) {
+    query GetContractsPaginated($first: Int!, $after: String, $filter: ContractQueryInput, $sort: String) {
+      contracts(first: $first, after: $after, filter: $filter, sort: $sort) {
         edges {
           node {
             id
@@ -61,56 +61,6 @@ export const CONTRACT_QUERIES = {
       }
     }
   `,
-
-  // 获取所有合同（不分页）
-  GET_ALL_CONTRACTS: `
-    query GetAllContracts {
-      contracts {
-        id
-        businessNo
-        billNo
-        salesman
-        theClient
-        invoiceNo
-        status
-        quantity
-        dateOfReceipt
-        dateOfSailing
-        remarks
-        receivables {
-          id
-          financeItem
-          amount
-          currency {
-            code
-            name
-            symbol
-          }
-          dueDate
-          status
-          createdAt
-          updatedAt
-        }
-        payables {
-          id
-          financeItem
-          amount
-          currency {
-            code
-            name
-            symbol
-          }
-          dueDate
-          status
-          createdAt
-          updatedAt
-        }
-        createdAt
-        updatedAt
-      }
-    }
-  `,
-
   // 根据状态获取合同（分页）
   GET_CONTRACTS_BY_STATUS_PAGINATED: `
     query GetContractsByStatusPaginated($status: ContractStatus!, $first: Int!, $after: String) {

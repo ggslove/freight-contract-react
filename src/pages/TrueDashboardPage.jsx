@@ -127,7 +127,6 @@ const TrueDashboardPage = () => {
     if (userInfo) {
       setUser(JSON.parse(userInfo));
     }
-
     fetchStats();
   }, [dateRange]);
 

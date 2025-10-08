@@ -150,7 +150,7 @@ const ContractForm = ({ formData, onChange, onSubmit, onClose, isEditing, showMo
           }}>
             <div>
               <label style={inputLabel}>
-                {t('contracts.contractNumber')} *
+                {t('contracts.businessNo')} *
               </label>
               <input
                 type="text"
@@ -176,7 +176,7 @@ const ContractForm = ({ formData, onChange, onSubmit, onClose, isEditing, showMo
 
             <div>
               <label style={inputLabel}>
-                {t('contracts.billNumber')} *
+                {t('contracts.billNo')} *
               </label>
               <input
                 type="text"

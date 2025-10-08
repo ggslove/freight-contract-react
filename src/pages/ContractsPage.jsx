@@ -16,13 +16,7 @@ const ContractsPage = () => {
   });
   const [statusFilter, setStatusFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({
-    contractNumber: '',
-    clientName: '',
-    totalAmount: '',
-    dateOfReceipt: '',
-    status: 'draft'
-  });
+  const [formData, setFormData] = useState(null);
   const [editingContract, setEditingContract] = useState(null);
   
   // 分页相关状态
@@ -38,9 +32,9 @@ const ContractsPage = () => {
   useEffect(() => {
     fetchContracts();
 
-    // 监听语言变化
+    // Listen for language changes
     const handleLanguageChange = () => {
-      console.log('🌐 Language change triggered fetchContracts');
+      // Language change event handler
       fetchContracts();
     };
 
@@ -53,45 +47,26 @@ const ContractsPage = () => {
   const fetchContracts = async () => {
     await safeAsync(async () => {
       setLoading(true);
-      let result;
       const first = contractsPerPage;
       // 计算游标
       const after = currentPage > 1 ? btoa(`arrayconnection:${(currentPage - 1) * contractsPerPage - 1}`) : null;
 
-      // 根据是否有搜索词和状态筛选选择不同的查询
-      if (searchTerm) {
-        result = await contractService.searchContractsPaginated(searchTerm, first, after);
-      } else if (statusFilter) {
-        result = await contractService.getContractsByStatusPaginated(statusFilter, first, after);
-      } else {
-        result = await contractService.getContractsPaginated(first, after);
-      }
+      // 构建筛选条件对象
+      const filter = {
+        searchTerm: searchTerm || undefined,
+        status: statusFilter || undefined,
+        // 只在有日期值时才传递，避免不必要的参数
+        startDate: dateRange.startDate ? new Date(dateRange.startDate).toISOString() : undefined,
+        endDate: dateRange.endDate ? new Date(dateRange.endDate).toISOString() : undefined
+      };
 
-      // 映射后端字段到前端使用的字段
-      const mappedContracts = result.contracts.map(contract => ({
-        id: contract.id,
-        contractNumber: contract.businessNo || contract.billNo || '',
-        clientName: contract.theClient || '',
-        totalAmount: contract.amount || 0,
-        dateOfReceipt: contract.dateOfReceipt,
-        status: contract.status?.toLowerCase() || 'draft',
-        salesman: contract.salesman || '',
-        invoiceNo: contract.invoiceNo || '',
-        dateOfSailing: contract.dateOfSailing || '',
-        remarks: contract.remarks || ''
-      }));
-
-      // 前端筛选日期范围（因为后端可能不支持日期筛选）
-      const filteredByDate = mappedContracts.filter(contract => {
-        const contractDate = new Date(contract.dateOfReceipt);
-        const matchesStartDate = !dateRange.startDate || contractDate >= new Date(dateRange.startDate);
-        const matchesEndDate = !dateRange.endDate || contractDate <= new Date(dateRange.endDate);
-        return matchesStartDate && matchesEndDate;
-      });
-      setContracts(filteredByDate);
+      // 使用统一的方法获取合同列表，并传递筛选条件
+      const result = await contractService.getContractsPaginated(first, after, filter);
+      
+      setContracts(result.contracts);
       setPageInfo(result.pageInfo);
       setTotalCount(result.totalCount);
-    } ,'获取合同列表失败:',()=>{setLoading(false)});
+    } ,t('contracts.fetchError'),()=>{setLoading(false)});
   };
 
   const handleSearchChange = (value) => {
@@ -122,23 +97,33 @@ const ContractsPage = () => {
 
   const handleNewModal = () => {
     setEditingContract(null);
-    setFormData({
-      contractNumber: '',
-      clientName: '',
-      totalAmount: '',
-      dateOfReceipt: '',
+    setFormData(
+      {
+      businessNo:'',
+      billNo: '',
+      salesman:'',
+      theClient: '',
+      invoiceNo:'',
+      quantity: '',
+      dateOfReceipt:'',
+      dateOfSailing:'',
       status: 'draft'
-    });
+    }
+    );
     setShowModal(true);
   };
 
   const handleEdit = (contract) => {
     setEditingContract(contract);
     setFormData({
-      contractNumber: contract.contractNumber,
-      clientName: contract.clientName,
-      totalAmount: contract.totalAmount,
+      businessNo: contract.businessNo,
+      billNo: contract.billNo,
+      salesman: contract.salesman,
+      theClient: contract.theClient,
+      invoiceNo: contract.invoiceNo,
+      quantity: contract.quantity,
       dateOfReceipt: contract.dateOfReceipt,
+      dateOfSailing: contract.dateOfSailing || '',
       status: contract.status
     });
     setShowModal(true);
@@ -151,16 +136,7 @@ const ContractsPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const contractData = {
-      businessNo: formData.contractNumber,
-      billNo: formData.contractNumber,
-      theClient: formData.clientName,
-      amount: parseFloat(formData.totalAmount),
-      dateOfReceipt: formData.dateOfReceipt,
-      status: formData.status.toUpperCase(),
-      remarks: ''
-    };
-
+    const contractData = formData
     if (editingContract) {
       await contractService.updateContract(editingContract.id, contractData);
     } else {
@@ -176,7 +152,7 @@ const ContractsPage = () => {
      await safeAsync(async ()=>{
         await contractService.deleteContract(id);
         await fetchContracts(); 
-     },'删除合同失败:')   
+     },t('contracts.deleteError'))   
     }
   };
 
@@ -304,26 +280,39 @@ const ContractsPage = () => {
           </h3>
         </div>
         
-        <div className="overflow-x-auto">
+        {/* Fixed column table container - Ensure middle columns are scrollable */}
+        <div className="overflow-x-auto" style={{maxWidth: '100%', position: 'relative'}}>
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  {t('contracts.contractNumber')}
+                {/* First column fixed - Using sticky positioning */}
+                <th scope="col" className="w-40 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sticky left-0 z-20 bg-gray-50 dark:bg-gray-700">
+                  {t('contracts.businessNo')}
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  {t('contracts.clientName')}
+                {/* 中间列设置明确宽度 */}
+                <th scope="col" className="w-48 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {t('contracts.billNo')}
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  {t('contracts.totalAmount')}
+                <th scope="col" className="w-36 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {t('contracts.salesman')}
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th scope="col" className="w-64 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {t('contracts.theClient')}
+                </th>
+                <th scope="col" className="w-48 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {t('contracts.invoiceNo')}
+                </th>
+                <th scope="col" className="w-32 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {t('contracts.quantity')}
+                </th>
+                <th scope="col" className="w-36 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   {t('contracts.dateOfReceipt')}
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th scope="col" className="w-32 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   {t('contracts.status')}
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                {/* Last column fixed - Using sticky positioning */}
+                <th scope="col" className="w-40 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sticky right-0 z-20 bg-gray-50 dark:bg-gray-700">
                   {t('common.actions')}
                 </th>
               </tr>
@@ -331,7 +320,7 @@ const ContractsPage = () => {
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {loading ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-8 text-center">
+                  <td colSpan="9" className="px-6 py-8 text-center">
                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
                     <p className="mt-2 text-gray-600">{t('common.loading')}</p>
                   </td>
@@ -339,24 +328,36 @@ const ContractsPage = () => {
               ) : (
                 contracts.map((contract) => (
                   <tr key={contract.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                      {contract.contractNumber}
+                    {/* First column data fixed - Ensure background color covers scrolling content */}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white sticky left-0 z-10 bg-white dark:bg-gray-800">
+                      {contract.businessNo}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                      {contract.clientName}
+                    {/* 中间列数据单元格保持正常滚动 */}
+                    <td className="w-48 px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                      {contract.billNo}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                      ${contract.totalAmount?.toLocaleString()}
+                    <td className="w-36 px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                      {contract.salesman}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                    <td className="w-64 px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                      {contract.theClient}
+                    </td>
+                    <td className="w-48 px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {contract.invoiceNo}
+                    </td>
+                    <td className="w-32 px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      ${contract.quantity?.toLocaleString()}
+                    </td>
+                    <td className="w-36 px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {new Date(contract.dateOfReceipt).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="w-32 px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(contract.status)}`}>
                         {t(`contracts.${contract.status}`)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                    {/* Last column data fixed - Ensure background color covers scrolling content */}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3 sticky right-0 z-10 bg-white dark:bg-gray-800">
                       <button
                         onClick={() => handleEdit(contract)}
                         className="text-blue-600 hover:text-blue-900"
@@ -432,7 +433,7 @@ const ContractsPage = () => {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Modal dialog */}
       <ContractForm
         formData={formData}
         onChange={handleFormChange}

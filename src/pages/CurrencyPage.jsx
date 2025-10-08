@@ -4,7 +4,6 @@ import currencyService from '../services/currencyService';
 import StatsCard from '../components/ui/StatsCard';
 import CurrencyTable from '../components/Currency/CurrencyTable';
 import CurrencyForm from '../components/Currency/CurrencyForm';
-import showErrorToast from '../utils/errorToast';
 import { safeAsync } from '../utils/globalErrorHandler';
 
 const CurrencyPage = () => {

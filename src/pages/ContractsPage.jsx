@@ -18,6 +18,8 @@ const ContractsPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState(null);
   const [editingContract, setEditingContract] = useState(null);
+  // 新增统计模式切换状态
+  const [statsMode, setStatsMode] = useState('current'); // 'current' 或 'all'
   
   // 分页相关状态
   const [pageInfo, setPageInfo] = useState({
@@ -202,8 +204,29 @@ const ContractsPage = () => {
         </button>
       </div>
 
-      {/* Contract Stats */}
-      <ContractStats contracts={contracts} />
+      {/* Contract Stats with Toggle */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            {t('contracts.stats')}
+          </h3>
+          <div className="inline-flex rounded-md bg-gray-100 dark:bg-gray-700 p-1" role="group">
+            <span
+              className={`px-4 py-2 text-sm font-medium rounded-md cursor-pointer transition-all duration-200 ${statsMode === 'current' ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
+              onClick={() => setStatsMode('current')}
+            >
+              {t('contracts.currentStats')}
+            </span>
+            <span
+              className={`px-4 py-2 text-sm font-medium rounded-md cursor-pointer transition-all duration-200 ${statsMode === 'all' ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
+              onClick={() => setStatsMode('all')}
+            >
+              {t('contracts.allStats')}
+            </span>
+          </div>
+        </div>
+        <ContractStats contracts={contracts} />
+      </div>
 
       {/* Compact Search and Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">

@@ -10,6 +10,9 @@ export const contractsTranslations = {
     contracts: {
       title: '合同管理',
       subtitle: '管理您的货运合同和财务信息',
+      stats: '合同统计',
+      currentStats: '当前筛选统计',
+      allStats: '全部统计',
       addContract: '新增合同',
       editContract: '编辑合同',
       create: '创建',
@@ -87,6 +90,9 @@ export const contractsTranslations = {
     contracts: {
       title: 'Contract Management',
       subtitle: 'Manage your freight contracts and financial information',
+      stats: 'Contract Statistics',
+      currentStats: 'Current Filter Stats',
+      allStats: 'All Stats',
       addContract: 'Add Contract',
       editContract: 'Edit Contract',
       create: 'Create',

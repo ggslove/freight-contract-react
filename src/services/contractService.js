@@ -6,7 +6,6 @@ const { CREATE_CONTRACT, DELETE_CONTRACT } = CONTRACT_MUTATIONS;
 const { 
   GET_CONTRACTS_PAGINATED,
   GET_CONTRACTS_BY_STATUS_PAGINATED,
-  SEARCH_CONTRACTS_PAGINATED,
   GET_ALL_CONTRACTS,
   GET_CONTRACTS_BY_STATUS,
   GET_CONTRACT_BY_ID } = CONTRACT_QUERIES;
@@ -71,15 +70,6 @@ const contractService = {
       variables: { status }
     });
     return data.contractsByStatus;
-  },
-
-  // 搜索合同（不分页）
-  async searchContracts(searchTerm) {
-    const { data } = await client.query({
-      query: gql(SEARCH_CONTRACTS_PAGINATED),
-      variables: { query: searchTerm, first: 1000, after: null }
-    });
-    return data.searchContracts.edges.map(edge => edge.node);
   },
 
   // 创建合同

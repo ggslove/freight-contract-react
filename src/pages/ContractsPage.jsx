@@ -105,9 +105,7 @@ const ContractsPage = () => {
       theClient: '',
       invoiceNo:'',
       quantity: '',
-      dateOfReceipt:'',
-      dateOfSailing:'',
-      status: 'draft'
+      status: 'PENDING'
     }
     );
     setShowModal(true);
@@ -161,12 +159,16 @@ const ContractsPage = () => {
   };
 
   const getStatusColor = (status) => {
+    //  PENDING: '待处理',
+    //   PARTIAL: '部分完成',
+    //   COMPLETED: '已完成',
+    //   OVERDUE: '已过期',
     const colors = {
-      draft: 'bg-gray-100 text-gray-800',
-      pending: 'bg-yellow-100 text-yellow-800',
-      approved: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800',
-      completed: 'bg-blue-100 text-blue-800'
+      OVERDUE: 'bg-gray-100 text-gray-800',
+      PENDING: 'bg-yellow-100 text-yellow-800',
+      PARTIAL: 'bg-green-100 text-green-800',
+      // rejected: 'bg-red-100 text-red-800',
+      COMPLETED: 'bg-blue-100 text-blue-800'
     };
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
@@ -254,11 +256,10 @@ const ContractsPage = () => {
                 className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">{t('contracts.allStatus')}</option>
-                <option value="draft">{t('contracts.draft')}</option>
-                <option value="pending">{t('contracts.pending')}</option>
-                <option value="approved">{t('contracts.approved')}</option>
-                <option value="rejected">{t('contracts.rejected')}</option>
-                <option value="completed">{t('contracts.completed')}</option>
+                <option value="PENDING">{t('contracts.pending')}</option>
+                <option value="PARTIAL">{t('contracts.partial')}</option>
+                <option value="COMPLETED">{t('contracts.completed')}</option>
+                <option value="OVERDUE">{t('contracts.overdue')}</option>
               </select>
             </div>
             <button

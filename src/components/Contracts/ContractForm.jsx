@@ -21,8 +21,6 @@ import {
 import { CURRENCY_QUERIES } from '../../graphql/queries/currency.queries.js';
 
 
-
-
 const ContractForm = ({ formData, onChange, onSubmit, onClose, isEditing, showModal }) => {
   const [itemType, setItemType] = useState('receivable');
   const [itemName, setItemName] = useState('');
@@ -222,34 +220,32 @@ const ContractForm = ({ formData, onChange, onSubmit, onClose, isEditing, showMo
                 onChange={(e) => handleFormChange({status: e.target.value})}
                 style={selectField}
               >
-                <option value="PENDING">{t('contracts.statusPending')}</option>
-                <option value="PARTIAL">{t('contracts.statusPartial')}</option>
-                <option value="COMPLETED">{t('contracts.statusCompleted')}</option>
-                <option value="OVERDUE">{t('contracts.statusOverdue')}</option>
+                <option value="PENDING">{t('contracts.PENDING')}</option>
+                <option value="PARTIAL">{t('contracts.PARTIAL')}</option>
+                <option value="COMPLETED">{t('contracts.COMPLETED')}</option>
+                <option value="OVERDUE">{t('contracts.OVERDUE')}</option>
               </select>
             </div>
             <div>
               <label style={inputLabel}>
-                {t('contracts.dateOfReceipt')} *
+                {t('contracts.dateOfReceipt')} 
               </label>
               <input
                 type="date"
                 value={formData.dateOfReceipt}
                 onChange={(e) => handleFormChange({dateOfReceipt: e.target.value})}
                 style={inputField}
-                required
               />
             </div>
             <div>
               <label style={inputLabel}>
-                {t('contracts.dateOfSailing')} *
+                {t('contracts.dateOfSailing')} 
               </label>
               <input
                 type="date"
                 value={formData.dateOfSailing}
                 onChange={(e) => handleFormChange({dateOfSailing: e.target.value})}
                 style={inputField}
-                required
               />
             </div>
 

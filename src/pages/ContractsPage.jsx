@@ -4,6 +4,7 @@ import ContractForm from '../components/Contracts/ContractForm';
 import ContractStats from '../components/Contracts/ContractStats';
 import contractService from '../services/contractService';
 import { safeAsync } from '../utils/globalErrorHandler';
+import { CONTRACT_STATUSES } from '../constants/contract';
 
 const ContractsPage = () => {
   const [contracts, setContracts] = useState([]);
@@ -18,8 +19,8 @@ const ContractsPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState(null);
   const [editingContract, setEditingContract] = useState(null);
-  // 新增统计模式切换状态
-  const [statsMode, setStatsMode] = useState('current'); // 'current' 或 'all'
+  // 所有合同统计数据状态
+  const [allContractsStats, setAllContractsStats] = useState([]);
   
   // 分页相关状态
   const [pageInfo, setPageInfo] = useState({
@@ -33,6 +34,7 @@ const ContractsPage = () => {
 
   useEffect(() => {
     fetchContracts();
+    fetchAllContractsStats();
 
     // Listen for language changes
     const handleLanguageChange = () => {
@@ -45,6 +47,22 @@ const ContractsPage = () => {
       window.removeEventListener('languageChanged', handleLanguageChange);
     };
   }, [currentPage, searchTerm, statusFilter, dateRange]);
+
+  const fetchAllContractsStats = async () => {
+    await safeAsync(async () => {
+      // 构建筛选条件对象，与fetchContracts保持一致
+      const filter = {
+        searchTerm: searchTerm || undefined,
+        status: statusFilter || undefined,
+        // 只在有日期值时才传递，避免不必要的参数
+        startDate: dateRange.startDate ? new Date(dateRange.startDate).toISOString() : undefined,
+        endDate: dateRange.endDate ? new Date(dateRange.endDate).toISOString() : undefined
+      };
+      
+      const stats = await contractService.getContractStats(filter);
+      setAllContractsStats(stats);
+    }, t('contracts.fetchError'));
+  };
 
   const fetchContracts = async () => {
     await safeAsync(async () => {
@@ -107,7 +125,7 @@ const ContractsPage = () => {
       theClient: '',
       invoiceNo:'',
       quantity: '',
-      status: 'PENDING'
+      status: CONTRACT_STATUSES[0]
     }
     );
     setShowModal(true);
@@ -161,16 +179,13 @@ const ContractsPage = () => {
   };
 
   const getStatusColor = (status) => {
-    //  PENDING: '待处理',
-    //   PARTIAL: '部分完成',
-    //   COMPLETED: '已完成',
-    //   OVERDUE: '已过期',
+    //  ACTIVE: '已生效（执行中）',
+    //  PENDING: '待结算',
+    //  SETTLED: '已结算（闭环）',
     const colors = {
-      OVERDUE: 'bg-gray-100 text-gray-800',
+      ACTIVE: 'bg-blue-100 text-blue-800',
       PENDING: 'bg-yellow-100 text-yellow-800',
-      PARTIAL: 'bg-green-100 text-green-800',
-      // rejected: 'bg-red-100 text-red-800',
-      COMPLETED: 'bg-blue-100 text-blue-800'
+      SETTLED: 'bg-green-100 text-green-800'
     };
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
@@ -204,29 +219,13 @@ const ContractsPage = () => {
         </button>
       </div>
 
-      {/* Contract Stats with Toggle */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+      {/* Contract Stats */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             {t('contracts.stats')}
           </h3>
-          <div className="inline-flex rounded-md bg-gray-100 dark:bg-gray-700 p-1" role="group">
-            <span
-              className={`px-4 py-2 text-sm font-medium rounded-md cursor-pointer transition-all duration-200 ${statsMode === 'current' ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
-              onClick={() => setStatsMode('current')}
-            >
-              {t('contracts.currentStats')}
-            </span>
-            <span
-              className={`px-4 py-2 text-sm font-medium rounded-md cursor-pointer transition-all duration-200 ${statsMode === 'all' ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
-              onClick={() => setStatsMode('all')}
-            >
-              {t('contracts.allStats')}
-            </span>
-          </div>
+          <ContractStats allContractsStats={allContractsStats} />
         </div>
-        <ContractStats contracts={contracts} />
-      </div>
 
       {/* Compact Search and Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
@@ -279,10 +278,9 @@ const ContractsPage = () => {
                 className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">{t('contracts.allStatus')}</option>
-                <option value="PENDING">{t('contracts.pending')}</option>
-                <option value="PARTIAL">{t('contracts.partial')}</option>
-                <option value="COMPLETED">{t('contracts.completed')}</option>
-                <option value="OVERDUE">{t('contracts.overdue')}</option>
+                {CONTRACT_STATUSES.map(status => (
+                  <option key={status} value={status}>{t(`contractStatus.${status}`)}</option>
+                ))}
               </select>
             </div>
             <button

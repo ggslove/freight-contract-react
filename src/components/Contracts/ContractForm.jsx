@@ -3,6 +3,7 @@ import { X, Plus, Trash2 } from 'lucide-react';
 import { t } from '../../utils/i18n';
 import { useQuery } from '@apollo/client/react';
 import { gql } from '@apollo/client';
+import { CONTRACT_STATUSES } from '../../constants/contract';
 import { 
   modalOverlay, 
   modalContainer, 
@@ -220,10 +221,9 @@ const ContractForm = ({ formData, onChange, onSubmit, onClose, isEditing, showMo
                 onChange={(e) => handleFormChange({status: e.target.value})}
                 style={selectField}
               >
-                <option value="PENDING">{t('contracts.PENDING')}</option>
-                <option value="PARTIAL">{t('contracts.PARTIAL')}</option>
-                <option value="COMPLETED">{t('contracts.COMPLETED')}</option>
-                <option value="OVERDUE">{t('contracts.OVERDUE')}</option>
+               {CONTRACT_STATUSES.map(status => (
+                  <option key={status} value={status}>{t(`contractStatus.${status}`)}</option>
+                ))}
               </select>
             </div>
             <div>

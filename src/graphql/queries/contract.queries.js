@@ -164,6 +164,16 @@ export const CONTRACT_QUERIES = {
     }
   `,
 
+  // 获取合同统计数据（按状态分组，支持过滤条件）
+  GET_CONTRACT_STATS: `
+    query GetContractStats($filter: ContractQueryInput) {
+      contractStats(filter: $filter) {
+        status
+        count
+      }
+    }
+  `,
+
   // 搜索合同（分页）
   SEARCH_CONTRACTS_PAGINATED: `
     query SearchContractsPaginated($query: String!, $first: Int!, $after: String) {

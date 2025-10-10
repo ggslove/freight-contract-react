@@ -1,14 +1,15 @@
-import client from '../apollo-client';
 import { gql } from '@apollo/client';
 import CONTRACT_MUTATIONS from '../graphql/mutations/contract.mutations';
 import { CONTRACT_QUERIES } from '../graphql/queries/contract.queries';
+import client from '../apollo-client';
+
 const { CREATE_CONTRACT, DELETE_CONTRACT } = CONTRACT_MUTATIONS;
-const { 
+const {
   GET_CONTRACTS_PAGINATED,
-  GET_CONTRACTS_BY_STATUS_PAGINATED,
   GET_ALL_CONTRACTS,
   GET_CONTRACTS_BY_STATUS,
-  GET_CONTRACT_BY_ID } = CONTRACT_QUERIES;
+  GET_CONTRACT_STATS
+} = CONTRACT_QUERIES;
 
 // 合同相关服务
 const contractService = {
@@ -72,6 +73,30 @@ const contractService = {
     return data.contractsByStatus;
   },
 
+  // 获取合同统计数据（按状态分组，支持过滤条件）
+  async getContractStats(filter = {}) {
+    // 构建filter对象
+    const filterObj = {
+      searchTerm: filter.searchTerm || null,
+      status: filter.status || null,
+      startDate: filter.startDate || null,
+      endDate: filter.endDate || null
+    };
+    
+    // 移除空值，避免不必要的参数传递
+    Object.keys(filterObj).forEach(key => {
+      if (filterObj[key] === null) {
+        delete filterObj[key];
+      }
+    });
+
+    const { data } = await client.query({
+      query: gql(GET_CONTRACT_STATS),
+      variables: Object.keys(filterObj).length > 0 ? { filter: filterObj } : undefined
+    });
+    return data.contractStats || [];
+  },
+
   // 创建合同
   async createContract(contractData) {
     const { data } = await client.mutate({
@@ -87,27 +112,27 @@ const contractService = {
 
   // 更新合同
   async updateContract(id, contractData) {
-      const { data } = await client.mutate({
-        mutation: gql`
-          mutation UpdateContract($id: ID!, $input: ContractInput!) {
-            updateContract(id: $id, input: $input) {
-              id
-              businessNo
-              billNo
-              theClient
-              amount
-              dateOfReceipt
-              status
-              salesman
-              invoiceNo
-              dateOfSailing
-              remarks
-            }
+    const { data } = await client.mutate({
+      mutation: gql`
+        mutation UpdateContract($id: ID!, $input: ContractInput!) {
+          updateContract(id: $id, input: $input) {
+            id
+            businessNo
+            billNo
+            theClient
+            amount
+            dateOfReceipt
+            status
+            salesman
+            invoiceNo
+            dateOfSailing
+            remarks
           }
-        `,
-        variables: { id, input: contractData }
-      });
-      return data.updateContract;
+        }
+      `,
+      variables: { id, input: contractData }
+    });
+    return data.updateContract;
   },
 
   // 删除合同

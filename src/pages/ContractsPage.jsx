@@ -21,7 +21,7 @@ const ContractsPage = () => {
   const [editingContract, setEditingContract] = useState(null);
   // 所有合同统计数据状态
   const [allContractsStats, setAllContractsStats] = useState([]);
-  
+
   // 分页相关状态
   const [pageInfo, setPageInfo] = useState({
     hasNextPage: false,
@@ -58,7 +58,7 @@ const ContractsPage = () => {
         startDate: dateRange.startDate ? new Date(dateRange.startDate).toISOString() : undefined,
         endDate: dateRange.endDate ? new Date(dateRange.endDate).toISOString() : undefined
       };
-      
+
       const stats = await contractService.getContractStats(filter);
       setAllContractsStats(stats);
     }, t('contracts.fetchError'));
@@ -82,11 +82,11 @@ const ContractsPage = () => {
 
       // 使用统一的方法获取合同列表，并传递筛选条件
       const result = await contractService.getContractsPaginated(first, after, filter);
-      
+
       setContracts(result.contracts);
       setPageInfo(result.pageInfo);
       setTotalCount(result.totalCount);
-    } ,t('contracts.fetchError'),()=>{setLoading(false)});
+    }, t('contracts.fetchError'), () => { setLoading(false) });
   };
 
   const handleSearchChange = (value) => {
@@ -119,14 +119,14 @@ const ContractsPage = () => {
     setEditingContract(null);
     setFormData(
       {
-      businessNo:'',
-      billNo: '',
-      salesman:'',
-      theClient: '',
-      invoiceNo:'',
-      quantity: '',
-      status: CONTRACT_STATUSES[0]
-    }
+        businessNo: '',
+        billNo: '',
+        salesman: '',
+        theClient: '',
+        invoiceNo: '',
+        quantity: '',
+        status: CONTRACT_STATUSES[0]
+      }
     );
     setShowModal(true);
   };
@@ -160,17 +160,17 @@ const ContractsPage = () => {
     } else {
       await contractService.createContract(contractData);
     }
-      // 重新获取当前页数据
+    // 重新获取当前页数据
     await fetchContracts();
     handleCloseModal();
   };
 
   const handleDelete = async (id) => {
     if (window.confirm(t('contracts.confirmDelete'))) {
-     await safeAsync(async ()=>{
+      await safeAsync(async () => {
         await contractService.deleteContract(id);
-        await fetchContracts(); 
-     },t('contracts.deleteError'))   
+        await fetchContracts();
+      }, t('contracts.deleteError'))
     }
   };
 
@@ -194,6 +194,8 @@ const ContractsPage = () => {
   const totalPages = Math.ceil(totalCount / contractsPerPage);
   const indexOfFirstContract = (currentPage - 1) * contractsPerPage + 1;
   const indexOfLastContract = Math.min(currentPage * contractsPerPage, totalCount);
+  // 新增统计模式切换状态
+  const [statsMode, setStatsMode] = useState('current'); // 'current' 或 'all'
 
   return (
     <div className="space-y-6">
@@ -207,7 +209,7 @@ const ContractsPage = () => {
             {t('contracts.subtitle')}
           </p>
         </div>
-        
+
         <button
           onClick={handleNewModal}
           className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
@@ -219,13 +221,33 @@ const ContractsPage = () => {
         </button>
       </div>
 
+
       {/* Contract Stats */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-4">
+
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             {t('contracts.stats')}
           </h3>
-          <ContractStats allContractsStats={allContractsStats} />
+
+          <div className="inline-flex rounded-md bg-gray-100 dark:bg-gray-700 p-1" role="group">
+            <span
+              className={`px-4 py-2 text-sm font-medium rounded-md cursor-pointer transition-all duration-200 ${statsMode === 'current' ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
+              onClick={() => setStatsMode('current')}
+            >
+              {t('contracts.currentStats')}
+            </span>
+            <span
+              className={`px-4 py-2 text-sm font-medium rounded-md cursor-pointer transition-all duration-200 ${statsMode === 'all' ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
+              onClick={() => setStatsMode('all')}
+            >
+              {t('contracts.allStats')}
+            </span>
+          </div>
         </div>
+
+        <ContractStats allContractsStats={allContractsStats} />
+      </div>
 
       {/* Compact Search and Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
@@ -242,7 +264,7 @@ const ContractsPage = () => {
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {t('contracts.startDate')}
@@ -254,7 +276,7 @@ const ContractsPage = () => {
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {t('contracts.endDate')}
@@ -266,7 +288,7 @@ const ContractsPage = () => {
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          
+
           <div className="flex gap-2">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -301,9 +323,9 @@ const ContractsPage = () => {
             {t('contracts.contractList')}
           </h3>
         </div>
-        
+
         {/* Fixed column table container - Ensure middle columns are scrollable */}
-        <div className="overflow-x-auto" style={{maxWidth: '100%', position: 'relative'}}>
+        <div className="overflow-x-auto" style={{ maxWidth: '100%', position: 'relative' }}>
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
@@ -398,7 +420,7 @@ const ContractsPage = () => {
               )}
             </tbody>
           </table>
-          
+
           {!loading && contracts.length === 0 && (
             <div className="px-6 py-8 text-center">
               <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -409,14 +431,14 @@ const ContractsPage = () => {
             </div>
           )}
         </div>
-        
+
         {/* Pagination - Always Visible */}
         <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-700 dark:text-gray-300">
               {t('common.showing')} {indexOfFirstContract} {t('common.to')} {Math.min(indexOfLastContract, totalCount)} {t('common.of')} {totalCount} {t('common.results')}
             </div>
-            
+
             <div className="flex space-x-2">
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
@@ -425,7 +447,7 @@ const ContractsPage = () => {
               >
                 {t('common.previous')}
               </button>
-              
+
               {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                 const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
                 return startPage + i;
@@ -433,16 +455,15 @@ const ContractsPage = () => {
                 <button
                   key={page}
                   onClick={() => handlePageChange(page)}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg ${
-                    currentPage === page
+                  className={`px-3 py-2 text-sm font-medium rounded-lg ${currentPage === page
                       ? 'bg-blue-600 text-white'
                       : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-100'
-                  }`}
+                    }`}
                 >
                   {page}
                 </button>
               ))}
-              
+
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}

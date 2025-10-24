@@ -36,7 +36,9 @@ const contractService = {
         first,
         after,
         filter: Object.keys(filterObj).length > 0 ? filterObj : undefined
-      }
+      },
+      // 禁用缓存，确保每次都从服务器获取最新数据
+      fetchPolicy: 'network-only'
     });
 
     return {
@@ -92,7 +94,9 @@ const contractService = {
 
     const { data } = await client.query({
       query: gql(GET_CONTRACT_STATS),
-      variables: Object.keys(filterObj).length > 0 ? { filter: filterObj } : undefined
+      variables: Object.keys(filterObj).length > 0 ? { filter: filterObj } : undefined,
+      // 禁用缓存，确保每次都从服务器获取最新数据
+      fetchPolicy: 'network-only'
     });
     return data.contractStats || [];
   },

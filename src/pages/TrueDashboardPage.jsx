@@ -83,9 +83,13 @@ const TrueDashboardPage = () => {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const [contracts, currencies] = await Promise.all([
-        contractService.getAllContracts(),
-        currencyService.getAllCurrencies()
+      // 添加try-catch来处理API调用失败的情况
+      const contractsPromise = contractService.getAllContracts().catch(() => []);
+      const currenciesPromise = currencyService.getAllCurrencies().catch(() => []);
+      
+      const [contracts = [], currencies = []] = await Promise.all([
+        contractsPromise,
+        currenciesPromise
       ]);
 
       // 计算总收入（合同金额总和）

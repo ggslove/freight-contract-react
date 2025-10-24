@@ -5,22 +5,32 @@ import ContractStats from '../components/Contracts/ContractStats';
 import contractService from '../services/contractService';
 import { safeAsync } from '../utils/globalErrorHandler';
 import { CONTRACT_STATUSES } from '../constants/contract';
+import useDebounce from '../hooks/useDebounce';
 
 const ContractsPage = () => {
   const [contracts, setContracts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+
   const [currentPage, setCurrentPage] = useState(1);
-  const [dateRange, setDateRange] = useState({
-    startDate: '',
-    endDate: ''
-  });
-  const [statusFilter, setStatusFilter] = useState('');
+
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState(null);
   const [editingContract, setEditingContract] = useState(null);
   // 所有合同统计数据状态
   const [allContractsStats, setAllContractsStats] = useState([]);
+  
+  // 统一的查询条件对象
+  const [filters, setFilters] = useState({
+    searchTerm: '',
+    statusFilter: '',
+    dateRange: {
+      startDate: '',
+      endDate: ''
+    }
+  });
+  
+  // 防抖处理的查询条件
+  const debouncedFilters = useDebounce(filters, 300);
 
   // 分页相关状态
   const [pageInfo, setPageInfo] = useState({
@@ -35,7 +45,6 @@ const ContractsPage = () => {
   useEffect(() => {
     fetchContracts();
     fetchAllContractsStats();
-
     // Listen for language changes
     const handleLanguageChange = () => {
       // Language change event handler
@@ -46,17 +55,17 @@ const ContractsPage = () => {
     return () => {
       window.removeEventListener('languageChanged', handleLanguageChange);
     };
-  }, [currentPage, searchTerm, statusFilter, dateRange]);
+  }, [currentPage, debouncedFilters]);
 
   const fetchAllContractsStats = async () => {
     await safeAsync(async () => {
-      // 构建筛选条件对象，与fetchContracts保持一致
+      // 构建筛选条件对象
       const filter = {
-        searchTerm: searchTerm || undefined,
-        status: statusFilter || undefined,
+        searchTerm: filters.searchTerm || undefined,
+        status: filters.statusFilter || undefined,
         // 只在有日期值时才传递，避免不必要的参数
-        startDate: dateRange.startDate ? new Date(dateRange.startDate).toISOString() : undefined,
-        endDate: dateRange.endDate ? new Date(dateRange.endDate).toISOString() : undefined
+        startDate: filters.dateRange.startDate ? new Date(filters.dateRange.startDate).toISOString() : undefined,
+        endDate: filters.dateRange.endDate ? new Date(filters.dateRange.endDate).toISOString() : undefined
       };
 
       const stats = await contractService.getContractStats(filter);
@@ -73,11 +82,11 @@ const ContractsPage = () => {
 
       // 构建筛选条件对象
       const filter = {
-        searchTerm: searchTerm || undefined,
-        status: statusFilter || undefined,
+        searchTerm: filters.searchTerm || undefined,
+        status: filters.statusFilter || undefined,
         // 只在有日期值时才传递，避免不必要的参数
-        startDate: dateRange.startDate ? new Date(dateRange.startDate).toISOString() : undefined,
-        endDate: dateRange.endDate ? new Date(dateRange.endDate).toISOString() : undefined
+        startDate: filters.dateRange.startDate ? new Date(filters.dateRange.startDate).toISOString() : undefined,
+        endDate: filters.dateRange.endDate ? new Date(filters.dateRange.endDate).toISOString() : undefined
       };
 
       // 使用统一的方法获取合同列表，并传递筛选条件
@@ -89,25 +98,38 @@ const ContractsPage = () => {
     }, t('contracts.fetchError'), () => { setLoading(false) });
   };
 
-  const handleSearchChange = (value) => {
-    setSearchTerm(value);
+  // 更新查询条件的函数
+  const updateFilters = (newFilters) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
     setCurrentPage(1);
+  };
+
+  const handleSearchChange = (value) => {
+    updateFilters({ searchTerm: value });
   };
 
   const handleDateRangeChange = (field, value) => {
-    setDateRange(prev => ({ ...prev, [field]: value }));
-    setCurrentPage(1);
+    updateFilters({
+      dateRange: {
+        ...filters.dateRange,
+        [field]: value
+      }
+    });
   };
 
   const handleStatusFilterChange = (value) => {
-    setStatusFilter(value);
-    setCurrentPage(1);
+    updateFilters({ statusFilter: value });
   };
 
   const resetFilters = () => {
-    setSearchTerm('');
-    setDateRange({ startDate: '', endDate: '' });
-    setStatusFilter('');
+    setFilters({
+      searchTerm: '',
+      statusFilter: '',
+      dateRange: {
+        startDate: '',
+        endDate: ''
+      }
+    });
     setCurrentPage(1);
   };
 
@@ -154,15 +176,30 @@ const ContractsPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const contractData = formData
-    if (editingContract) {
-      await contractService.updateContract(editingContract.id, contractData);
-    } else {
-      await contractService.createContract(contractData);
-    }
-    // 重新获取当前页数据
-    await fetchContracts();
-    handleCloseModal();
+    
+    // 添加加载状态
+    setLoading(true);
+    
+    await safeAsync(async () => {
+      const contractData = formData;
+
+      if (editingContract) {
+        await contractService.updateContract(editingContract.id, contractData);
+      } else {
+        await contractService.createContract(contractData);
+      }
+      // 重新获取当前页数据
+      await fetchContracts();
+      
+      // 重新获取统计数据
+      await fetchAllContractsStats();
+      
+      // 关闭模态框
+      handleCloseModal();
+      
+      // 可以添加成功消息提示
+      // 例如：toast.success(t('contracts.saveSuccess'));
+    }, t('contracts.saveError'), () => { setLoading(false) });
   };
 
   const handleDelete = async (id) => {
@@ -259,7 +296,7 @@ const ContractsPage = () => {
             <input
               type="text"
               placeholder={t('contracts.searchPlaceholder')}
-              value={searchTerm}
+              value={filters.searchTerm}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
@@ -271,7 +308,7 @@ const ContractsPage = () => {
             </label>
             <input
               type="date"
-              value={dateRange.startDate}
+              value={filters.dateRange.startDate}
               onChange={(e) => handleDateRangeChange('startDate', e.target.value)}
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
@@ -283,7 +320,7 @@ const ContractsPage = () => {
             </label>
             <input
               type="date"
-              value={dateRange.endDate}
+              value={filters.dateRange.endDate}
               onChange={(e) => handleDateRangeChange('endDate', e.target.value)}
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
@@ -295,8 +332,8 @@ const ContractsPage = () => {
                 {t('contracts.status')}
               </label>
               <select
-                value={statusFilter}
-                onChange={(e) => handleStatusFilterChange(e.target.value)}
+                value={filters.statusFilter}
+              onChange={(e) => handleStatusFilterChange(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">{t('contracts.allStatus')}</option>
